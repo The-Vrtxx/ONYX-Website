@@ -2,32 +2,318 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ONYX | Commands</title>
-    <style>
-        body {
-            background: #080d12;
-            color: #e5e9ed;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 80px 20px;
-        }
-        h1 {
-            font-size: 48px;
-            letter-spacing: 8px;
-        }
-        span {
-            color: #19d5c5;
-        }
-        p {
-            color: #aab4bf;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080d12">
+<title>ONYX | Command Directory</title>
+<style>
+:root {
+  --bg:#080d12;
+  --panel:#111a23;
+  --panel2:#17232e;
+  --text:#e8edf2;
+  --muted:#9ba9b6;
+  --teal:#55d5c8;
+  --border:#263642;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Inter,Arial,sans-serif;
+}
+a {color:inherit;text-decoration:none}
+header {
+  position:sticky;top:0;z-index:10;
+  background:#0b1118ee;backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.nav {
+  max-width:1150px;margin:auto;padding:18px 22px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.logo {font-size:25px;font-weight:900;letter-spacing:6px}
+.logo span,.accent {color:var(--teal)}
+.nav a:last-child {color:var(--muted);font-size:14px}
+.container {max-width:1150px;margin:auto;padding:55px 22px}
+.eyebrow {
+  color:var(--teal);font-size:11px;font-weight:800;
+  letter-spacing:3px;text-transform:uppercase;
+}
+h1 {font-size:clamp(38px,7vw,66px);margin:14px 0}
+.subtitle {color:var(--muted);line-height:1.7;max-width:650px}
+.toolbar {
+  display:grid;grid-template-columns:1fr auto;
+  gap:12px;margin:35px 0 22px;
+}
+input,select {
+  width:100%;padding:15px;background:var(--panel);
+  border:1px solid var(--border);border-radius:10px;
+  color:var(--text);font-size:15px;outline:none;
+}
+input:focus,select:focus {border-color:var(--teal)}
+.categories {
+  display:flex;gap:9px;flex-wrap:wrap;margin-bottom:28px;
+}
+.filter {
+  background:var(--panel);border:1px solid var(--border);
+  color:var(--muted);padding:10px 15px;border-radius:8px;
+  cursor:pointer;font-size:13px;
+}
+.filter.active,.filter:hover {
+  background:#15332f;border-color:var(--teal);color:var(--teal);
+}
+.results {
+  color:var(--muted);font-size:13px;margin-bottom:15px;
+}
+.group {margin:35px 0}
+.group h2 {font-size:21px;margin-bottom:15px}
+.cards {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:13px;
+}
+.command {
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;padding:19px;min-width:0;
+}
+.command:hover {border-color:#428e87}
+.command-top {
+  display:flex;justify-content:space-between;
+  align-items:center;gap:10px;flex-wrap:wrap;
+}
+.command code {
+  color:var(--teal);font-size:15px;font-weight:700;
+  overflow-wrap:anywhere;
+}
+.tag {
+  color:#a9b9c7;background:var(--panel2);
+  padding:5px 8px;border-radius:5px;font-size:10px;
+}
+.command p {
+  color:var(--muted);font-size:13px;line-height:1.6;
+  margin:12px 0;
+}
+.meta {font-size:11px;color:#8395a4;line-height:1.7}
+.empty {
+  display:none;text-align:center;padding:45px;
+  color:var(--muted);background:var(--panel);
+  border-radius:12px;
+}
+footer {
+  border-top:1px solid var(--border);padding:28px;
+  text-align:center;color:var(--muted);font-size:12px;
+}
+@media(max-width:650px) {
+  .cards {grid-template-columns:1fr}
+  .toolbar {grid-template-columns:1fr}
+  .container {padding-top:40px}
+}
+</style>
 </head>
 <body>
-    <h1>ON<span>YX</span></h1>
-    <h2>Command Directory</h2>
-    <p>Explore the tools and features available in ONYX.</p>
+
+<header>
+  <div class="nav">
+    <a class="logo" href="../index.html">ON<span>YX</span></a>
+    <a href="../index.html">← Back to Home</a>
+  </div>
+</header>
+
+<main class="container">
+  <div class="eyebrow">ONYX DOCUMENTATION</div>
+  <h1>Command <span class="accent">Directory.</span></h1>
+  <p class="subtitle">
+    Explore the commands available in ONYX. Find tools,
+    understand their purpose, and learn how to use them.
+    ONYX uses prefix commands with the default prefix
+    <strong class="accent">,</strong>.
+  </p>
+
+  <div class="toolbar">
+    <input id="search" type="search"
+      placeholder="Search commands or descriptions...">
+    <select id="permission">
+      <option value="all">All permissions</option>
+      <option value="Everyone">Everyone</option>
+      <option value="Staff">Staff</option>
+      <option value="Administrator">Administrator</option>
+      <option value="Owner">Owner</option>
+    </select>
+  </div>
+
+  <div class="categories" id="categories">
+    <button class="filter active" data-category="all">All Commands</button>
+    <button class="filter" data-category="Levels">Levels</button>
+    <button class="filter" data-category="Moderation">Moderation</button>
+    <button class="filter" data-category="Server Management">Server Management</button>
+    <button class="filter" data-category="Engagement">Engagement</button>
+    <button class="filter" data-category="Tickets & Reports">Tickets & Reports</button>
+    <button class="filter" data-category="Giveaways">Giveaways</button>
+    <button class="filter" data-category="Utility">Utility</button>
+    <button class="filter" data-category="Owner Tools">Owner Tools</button>
+  </div>
+
+  <div class="results" id="results"></div>
+  <div id="directory"></div>
+  <div class="empty" id="empty">
+    <h3>No commands found</h3>
+    <p>Try another search or permission filter.</p>
+  </div>
+</main>
+
+<footer>
+  ONYX © 2026 · Command Your Community.
+</footer>
+
+<script>
+const commands = [
+  // LEVELS
+  ["rank","Levels","View your leveling profile and rank."," ,rank","Everyone"],
+  ["leaderboard","Levels","View the leveling leaderboard."," ,leaderboard","Everyone"],
+  ["prestige","Levels","Access the prestige system."," ,prestige","Everyone"],
+  ["prestige leaderboard","Levels","View the prestige leaderboard."," ,prestige leaderboard","Everyone"],
+  ["levels announcements","Levels","Configure leveling announcements."," ,levels announcements","Administrator"],
+  ["levels enable","Levels","Enable the leveling system."," ,levels enable","Administrator"],
+  ["levels disable","Levels","Disable the leveling system."," ,levels disable","Administrator"],
+  ["levels rate","Levels","Configure the XP earning rate."," ,levels rate","Administrator"],
+  ["levels cooldown","Levels","Configure the XP cooldown."," ,levels cooldown","Administrator"],
+  ["levels channel","Levels","Configure the leveling announcement channel."," ,levels channel","Administrator"],
+  ["levels message","Levels","Configure the level-up message."," ,levels message","Administrator"],
+  ["levelmessages","Levels","Manage level-up messages."," ,levelmessages","Administrator"],
+  ["ignore add","Levels","Add a channel to the XP ignore list."," ,ignore add","Administrator"],
+  ["ignore remove","Levels","Remove a channel from the XP ignore list."," ,ignore remove","Administrator"],
+  ["ignore list","Levels","View ignored XP channels."," ,ignore list","Administrator"],
+  ["reward add","Levels","Add a level reward."," ,reward add","Administrator"],
+  ["reward remove","Levels","Remove a level reward."," ,reward remove","Administrator"],
+  ["reward list","Levels","View configured level rewards."," ,reward list","Administrator"],
+  ["xp add","Levels","Add XP to a member."," ,xp add","Administrator"],
+  ["xp set","Levels","Set a member's XP."," ,xp set","Administrator"],
+  ["xp remove","Levels","Remove XP from a member."," ,xp remove","Administrator"],
+  ["xp reset","Levels","Reset leveling data."," ,xp reset","Administrator"],
+
+  // SERVER MANAGEMENT
+  ["channel create","Server Management","Create a server channel."," ,channel create","Administrator"],
+  ["channel delete","Server Management","Delete a server channel."," ,channel delete","Administrator"],
+  ["nuke","Server Management","Recreate a channel using the nuke command."," ,nuke","Administrator"],
+  ["setup","Server Management","Configure ONYX server settings."," ,setup","Administrator"],
+  ["setup jail","Server Management","Configure the jail system."," ,setup jail","Administrator"],
+  ["settings","Server Management","View server configuration settings."," ,settings","Administrator"],
+  ["serverdata","Server Management","View server data information."," ,serverdata","Administrator"],
+  ["prefix","Server Management","View or manage the server prefix."," ,prefix","Administrator"],
+  ["prefix set","Server Management","Change the server command prefix."," ,prefix set","Administrator"],
+  ["prefix reset","Server Management","Reset the server prefix."," ,prefix reset","Administrator"],
+  ["voicemaster_setup","Server Management","Configure VoiceMaster."," ,voicemaster_setup","Administrator"],
+
+  // ENGAGEMENT
+  ["poll","Engagement","Create a poll for your community."," ,poll","Staff"],
+  ["autoresponse_add","Engagement","Add an automatic response."," ,autoresponse_add","Administrator"],
+  ["autoresponse_remove","Engagement","Remove an automatic response."," ,autoresponse_remove","Administrator"],
+  ["autoresponse_list","Engagement","View automatic responses."," ,autoresponse_list","Administrator"],
+
+  // TICKETS & REPORTS
+  ["report","Tickets & Reports","Submit a report through ONYX."," ,report","Everyone"],
+  ["setupreport","Tickets & Reports","Configure the report system."," ,setupreport","Administrator"],
+  ["setupcentralreports","Tickets & Reports","Configure central reporting."," ,setupcentralreports","Administrator"],
+  ["ticket_setup","Tickets & Reports","Configure the ticket system."," ,ticket_setup","Administrator"],
+
+  // GIVEAWAYS
+  ["giveaway","Giveaways","Start a giveaway."," ,giveaway","Staff"],
+  ["gcreate","Giveaways","Create a giveaway."," ,gcreate","Staff"],
+  ["reroll","Giveaways","Reroll a giveaway winner."," ,reroll","Staff"],
+
+  // UTILITY
+  ["backup create","Utility","Create a server backup."," ,backup create","Administrator"],
+  ["backup restore","Utility","Restore a server backup."," ,backup restore","Administrator"],
+  ["aliases","Utility","View configured command aliases."," ,aliases","Everyone"],
+
+  // OWNER TOOLS
+  ["shh","Owner Tools","Manage the configured quiet role."," ,shh","Owner"],
+  ["shh_whitelist_add","Owner Tools","Add a user to the shh whitelist."," ,shh_whitelist_add","Owner"],
+  ["shh_whitelist_remove","Owner Tools","Remove a user from the shh whitelist."," ,shh_whitelist_remove","Owner"],
+  ["shh_set_role","Owner Tools","Set the role used by the shh command."," ,shh_set_role","Owner"]
+];
+
+let activeCategory = "all";
+
+const directory = document.getElementById("directory");
+const search = document.getElementById("search");
+const permission = document.getElementById("permission");
+const results = document.getElementById("results");
+const empty = document.getElementById("empty");
+
+function render() {
+  const term = search.value.toLowerCase().trim();
+  const perm = permission.value;
+
+  const filtered = commands.filter(c => {
+    const matchesCategory = activeCategory === "all" || c[1] === activeCategory;
+    const matchesPermission = perm === "all" || c[4] === perm;
+    const matchesSearch = c.join(" ").toLowerCase().includes(term);
+    return matchesCategory && matchesPermission && matchesSearch;
+  });
+
+  results.textContent = filtered.length + " commands shown · Default prefix: ,";
+  directory.innerHTML = "";
+
+  const groups = [...new Set(filtered.map(c => c[1]))];
+
+  groups.forEach(group => {
+    const section = document.createElement("section");
+    section.className = "group";
+
+    const heading = document.createElement("h2");
+    heading.textContent = group;
+    section.appendChild(heading);
+
+    const cards = document.createElement("div");
+    cards.className = "cards";
+
+    filtered.filter(c => c[1] === group).forEach(c => {
+      const card = document.createElement("article");
+      card.className = "command";
+
+      const top = document.createElement("div");
+      top.className = "command-top";
+
+      const name = document.createElement("code");
+      name.textContent = "," + c[0];
+
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = c[4];
+
+      top.append(name, tag);
+
+      const description = document.createElement("p");
+      description.textContent = c[2];
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = "Usage: " + c[3].trim();
+
+      card.append(top, description, meta);
+      cards.appendChild(card);
+    });
+
+    section.appendChild(cards);
+    directory.appendChild(section);
+  });
+
+  empty.style.display = filtered.length ? "none" : "block";
+}
+
+document.querySelectorAll(".filter").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".filter").forEach(b => b.classList.remove("active"));
+    button.classList.add("active");
+    activeCategory = button.dataset.category;
+    render();
+  });
+});
+
+search.addEventListener("input", render);
+permission.addEventListener("change", render);
+render();
+</script>
 </body>
 </html>
+
