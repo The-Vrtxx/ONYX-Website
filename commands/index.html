@@ -1,257 +1,426 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#080d12">
-<title>ONYX | Command Directory</title>
+<meta name="theme-color" content="#05090b">
+<meta name="description" content="Browse all 234 ONYX Discord bot prefix commands, with syntax and descriptions.">
+<title>Command Directory — ONYX</title>
+<link rel="icon" href="../assets/onyx-mark.png">
+<link rel="stylesheet" href="../assets/styles.css">
 <style>
-:root{--bg:#080d12;--panel:#111a23;--panel2:#17232e;--text:#e8edf2;--muted:#9ba9b6;--teal:#55d5c8;--border:#263642}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
-header{position:sticky;top:0;background:#0b1118ee;border-bottom:1px solid var(--border);z-index:5}
-.nav{max-width:1150px;margin:auto;padding:18px 22px;display:flex;justify-content:space-between;align-items:center}
-.logo{font-size:25px;font-weight:900;letter-spacing:6px;color:white;text-decoration:none}
-.logo span,.accent{color:var(--teal)}
-.nav a:last-child{color:var(--muted);text-decoration:none}
-.container{max-width:1150px;margin:auto;padding:48px 22px}
-.eyebrow{color:var(--teal);font-size:11px;font-weight:bold;letter-spacing:3px}
-h1{font-size:clamp(38px,7vw,65px);margin:14px 0}
-.subtitle{color:var(--muted);line-height:1.7;max-width:700px}
-.toolbar{display:grid;grid-template-columns:1fr 220px;gap:12px;margin:30px 0 18px}
-input,select{width:100%;padding:15px;background:var(--panel);border:1px solid var(--border);border-radius:9px;color:white;font-size:14px}
-.categories{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:25px}
-.filter{background:var(--panel);border:1px solid var(--border);color:var(--muted);padding:10px 13px;border-radius:7px;cursor:pointer}
-.filter.active,.filter:hover{border-color:var(--teal);color:var(--teal);background:#15332f}
-.results{font-size:13px;color:var(--muted)}
-.group{margin:30px 0}
-.group h2{font-size:21px;margin-bottom:14px}
-.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.command{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:18px}
-.command:hover{border-color:var(--teal)}
-.top{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
-.command code{color:var(--teal);font-size:14px;font-weight:bold;overflow-wrap:anywhere}
-.tag{font-size:10px;color:#a9b9c7;background:var(--panel2);padding:5px 8px;border-radius:5px}
-.command p{font-size:13px;color:var(--muted);line-height:1.6}
-.usage{font-size:11px;color:#8395a4;line-height:1.7;overflow-wrap:anywhere}
-.empty{display:none;text-align:center;padding:40px;color:var(--muted);background:var(--panel);border-radius:10px}
-.note{margin-top:28px;padding:15px;background:var(--panel);border-left:3px solid var(--teal);color:var(--muted);font-size:12px;line-height:1.6}
-footer{border-top:1px solid var(--border);padding:28px;text-align:center;color:var(--muted);font-size:12px}
-@media(max-width:650px){.cards{grid-template-columns:1fr}.toolbar{grid-template-columns:1fr}.container{padding-top:35px}}
+.command-tools{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:12px;margin:30px 0 16px}
+.command-search,.command-select{width:100%;background:#0b1418;border:1px solid #24363c;color:#e8f1f2;border-radius:12px;padding:15px 16px;font:inherit;outline:none}
+.command-search:focus,.command-select:focus{border-color:#36d6c4;box-shadow:0 0 0 3px #36d6c41c}
+.command-filter-list{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 28px}
+.filter-chip{background:#0b1418;color:#b8c8ca;border:1px solid #24363c;border-radius:999px;padding:8px 12px;cursor:pointer;font:inherit;font-size:.82rem}
+.filter-chip span{color:#54dccc;margin-left:5px}
+.filter-chip.active{background:#10302f;border-color:#36d6c4;color:#efffff}
+.command-stats{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#a9b9bb;font-size:.9rem;margin:12px 0 32px}
+.command-category{margin:36px 0 48px;scroll-margin-top:90px}
+.category-heading{display:flex;justify-content:space-between;align-items:end;border-bottom:1px solid #203137;padding-bottom:13px;margin-bottom:14px}
+.category-heading h2{margin:4px 0 0;font-size:1.55rem}
+.category-count{color:#59dccc;font-size:.85rem;white-space:nowrap}
+.command-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.command-entry{background:linear-gradient(145deg,#0d171b,#091014);border:1px solid #1c3036;border-radius:14px;padding:16px;min-width:0}
+.command-entry-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.command-entry h3{font-size:1rem;margin:0;color:#e9f5f5;overflow-wrap:anywhere}
+.command-entry p{color:#a8b8bb;font-size:.9rem;line-height:1.55;margin:12px 0 0}
+.command-usage{display:block;color:#5ce0cf;background:#071012;border:1px solid #1b3438;border-radius:8px;padding:9px 10px;margin-top:12px;white-space:normal;overflow-wrap:anywhere;font-size:.83rem}
+.copy-command{background:#102a2b;border:1px solid #28504d;color:#72e5d5;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:.78rem;flex-shrink:0}
+.copy-command:hover{background:#17413e}
+.empty-state{display:none;text-align:center;color:#a9b9bb;padding:42px 12px;border:1px dashed #294047;border-radius:14px}
+@media(max-width:760px){.command-tools{grid-template-columns:1fr}.command-list{grid-template-columns:1fr}.command-stats{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body>
-<header>
-<div class="nav">
-<a class="logo" href="../index.html">ON<span>YX</span></a>
-<a href="../index.html">← Back to Home</a>
-</div>
+<header class="topbar">
+<a class="brand" href="../index.html"><img class="brand-mark" src="../assets/onyx-mark.png" alt=""> ONYX</a>
+<button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+<nav><a href="../index.html">Home</a><a href="../features.html">Features</a><a class="active" href="../docs.html">Documentation</a><a href="../terms.html">Terms</a><a href="../privacy.html">Privacy</a><a href="../support.html">Support</a><a class="nav-cta" href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8">Authorize ONYX ↗</a></nav>
 </header>
 
-<main class="container">
-<div class="eyebrow">ONYX DOCUMENTATION</div>
-<h1>Command <span class="accent">Directory.</span></h1>
-<p class="subtitle">Your central directory for ONYX commands. Search, browse categories, and explore the tools available to your community. Default prefix: <strong class="accent">,</strong></p>
-
-<div class="toolbar">
-<input id="search" placeholder="Search commands..." type="search">
-<select id="categorySelect"><option value="all">All Categories</option></select>
+<main class="wrap">
+<div class="command-hero">
+<div class="eyebrow">ONYX / COMMAND DIRECTORY</div>
+<h1>Every command.<br><em>One place.</em></h1>
+<p class="lead">The complete public command list exported directly from the running ONYX bot.</p>
+<div class="command-note"><b>234 public commands</b> across 33 categories. Default prefix: <code>,</code>. Some commands require server permissions or staff access. Your server may use a customized prefix.</div>
 </div>
-<div class="categories" id="categories"></div>
-<div class="results" id="results"></div>
-<div id="directory"></div>
-<div class="empty" id="empty"><h3>No commands found</h3><p>Try another search.</p></div>
 
-<div class="note">
-<strong>Command information:</strong> This directory includes commands identified in the ONYX source files. Some command groups have additional subcommands. Usage examples are illustrative where exact argument formats have not yet been verified. Permissions and availability can depend on server configuration.
+<div class="command-tools">
+<input id="commandSearch" class="command-search" type="search" placeholder="Search commands, usage, or descriptions…" autocomplete="off">
+<select id="categorySelect" class="command-select" aria-label="Filter by category"><option value="">All categories (33)</option></select>
 </div>
+
+<div class="command-filter-list" id="filterChips"></div>
+<div class="command-stats">
+<span id="resultCount">Showing 234 of 234 commands</span>
+<span>Tip: select <b>Copy</b> to copy a command's usage.</span>
+</div>
+
+<div id="commandSections"></div>
+<div id="emptyState" class="empty-state">No commands match your search.</div>
 </main>
 
-<footer>ONYX © 2026 · Command Your Community.</footer>
-
 <script>
-const commands=[
-["rank","Levels & Prestige","View your leveling profile and rank."," ,rank"],
-["leaderboard","Levels & Prestige","View the leveling leaderboard."," ,leaderboard"],
-["prestige","Levels & Prestige","Access the prestige system."," ,prestige"],
-["prestige leaderboard","Levels & Prestige","View the prestige leaderboard."," ,prestige leaderboard"],
-["levels announcements","Levels & Prestige","Configure leveling announcements."," ,levels announcements"],
-["levels enable","Levels & Prestige","Enable leveling."," ,levels enable"],
-["levels disable","Levels & Prestige","Disable leveling."," ,levels disable"],
-["levels rate","Levels & Prestige","Configure XP earning rate."," ,levels rate"],
-["levels cooldown","Levels & Prestige","Configure XP cooldown."," ,levels cooldown"],
-["levels channel","Levels & Prestige","Configure announcement channel."," ,levels channel"],
-["levels message","Levels & Prestige","Configure level-up messages."," ,levels message"],
-["levelmessages","Levels & Prestige","Manage level-up messages."," ,levelmessages"],
-["ignore add","Levels & Prestige","Add an ignored XP channel."," ,ignore add"],
-["ignore remove","Levels & Prestige","Remove an ignored XP channel."," ,ignore remove"],
-["ignore list","Levels & Prestige","List ignored XP channels."," ,ignore list"],
-["reward add","Levels & Prestige","Add a level reward."," ,reward add"],
-["reward remove","Levels & Prestige","Remove a level reward."," ,reward remove"],
-["reward list","Levels & Prestige","List configured rewards."," ,reward list"],
-["xp add","Levels & Prestige","Add XP to a member."," ,xp add"],
-["xp set","Levels & Prestige","Set a member's XP."," ,xp set"],
-["xp remove","Levels & Prestige","Remove a member's XP."," ,xp remove"],
-["xp reset","Levels & Prestige","Reset leveling data."," ,xp reset"],
+const commands = [{"name":"antiraid","usage":",antiraid <count> <seconds> <channel>","category":"anti-raid protection","description":"Configure join alerts: ,antiraid count seconds #channel"},
+  {"name":"antiraid_off","usage":",antiraid_off","category":"anti-raid protection","description":"Disable join spike alerts."},
+  {"name":"antinuke","usage":",antinuke","category":"antinuke","description":"No description available."},
+  {"name":"antinuke help","usage":",antinuke help","category":"antinuke","description":"No description available."},
+  {"name":"antinuke jailrole","usage":",antinuke jailrole <role>","category":"antinuke","description":"No description available."},
+  {"name":"antinuke logchannel","usage":",antinuke logchannel <channel>","category":"antinuke","description":"No description available."},
+  {"name":"antinuke logs","usage":",antinuke logs [count=8]","category":"antinuke","description":"No description available."},
+  {"name":"antinuke off","usage":",antinuke off","category":"antinuke","description":"No description available."},
+  {"name":"antinuke on","usage":",antinuke on","category":"antinuke","description":"No description available."},
+  {"name":"antinuke punishment","usage":",antinuke punishment <choice>","category":"antinuke","description":"No description available."},
+  {"name":"antinuke setup","usage":",antinuke setup <threshold> <seconds> <punishment> [channel]","category":"antinuke","description":"No description available."},
+  {"name":"antinuke staffrole","usage":",antinuke staffrole","category":"antinuke","description":"No description available."},
+  {"name":"antinuke staffrole add","usage":",antinuke staffrole add <role>","category":"antinuke","description":"No description available."},
+  {"name":"antinuke staffrole remove","usage":",antinuke staffrole remove <role>","category":"antinuke","description":"No description available."},
+  {"name":"antinuke status","usage":",antinuke status","category":"antinuke","description":"No description available."},
+  {"name":"antinuke threshold","usage":",antinuke threshold <count> <seconds>","category":"antinuke","description":"No description available."},
+  {"name":"antinuke whitelist","usage":",antinuke whitelist","category":"antinuke","description":"No description available."},
+  {"name":"antinuke whitelist add","usage":",antinuke whitelist add <member>","category":"antinuke","description":"No description available."},
+  {"name":"antinuke whitelist list","usage":",antinuke whitelist list","category":"antinuke","description":"No description available."},
+  {"name":"antinuke whitelist remove","usage":",antinuke whitelist remove <member>","category":"antinuke","description":"No description available."},
+  {"name":"automod","usage":",automod [args]","category":"automod","description":"Legacy alias notice for the new filter system."},
+  {"name":"filter","usage":",filter [filter_name] [state] [options]","category":"automod","description":"Configure ONYX message filters and punishments."},
+  {"name":"clearbots","usage":",clearbots [scan_limit=100]","category":"bulktools","description":"Delete recent messages sent by bots only. Usage: ,clearbots [messages_to_scan]"},
+  {"name":"massrole","usage":",massrole <group> <role>","category":"bulktools","description":"Add a role to humans or bots. Usage: ,massrole humans @Role | bots @Role"},
+  {"name":"channel","usage":",channel","category":"channel management","description":"Create and delete server channels."},
+  {"name":"channel create","usage":",channel create <name>","category":"channel management","description":"Create a new text channel."},
+  {"name":"channel delete","usage":",channel delete <channel>","category":"channel management","description":"Delete a text channel after confirmation."},
+  {"name":"nuke","usage":",nuke","category":"channel management","description":"Recreate this channel after one-time DM code verification."},
+  {"name":"help","usage":",help [command]","category":"core","description":"No description available."},
+  {"name":"reload","usage":",reload [cog]","category":"core","description":"Reload one cog, or all loaded cogs. Owner only."},
+  {"name":"copyembed","usage":",copyembed [message]","category":"custom commands & embeds","description":"Copy an embed from a message link or a replied-to message."},
+  {"name":"custom_add","usage":",custom_add <name> <response>","category":"custom commands & embeds","description":"Create a custom text command."},
+  {"name":"custom_remove","usage":",custom_remove <name>","category":"custom commands & embeds","description":"Delete a server custom command."},
+  {"name":"custom_run","usage":",custom_run <name>","category":"custom commands & embeds","description":"Run a server custom command."},
+  {"name":"embed","usage":",embed [title] [description]","category":"custom commands & embeds","description":"Create an embed or open the visual embed creator."},
+  {"name":"embed create","usage":",embed create","category":"custom commands & embeds","description":"Open the interactive dropdown embed creator."},
+  {"name":"embed_template_delete","usage":",embed_template_delete <name>","category":"custom commands & embeds","description":"Delete a saved embed template."},
+  {"name":"embed_template_save","usage":",embed_template_save <name> <title> <description>","category":"custom commands & embeds","description":"Save an embed template for this server."},
+  {"name":"embed_template_send","usage":",embed_template_send <name> [channel]","category":"custom commands & embeds","description":"Send a saved embed template."},
+  {"name":"autoresponse_add","usage":",autoresponse_add <entry>","category":"engagement","description":"Save a keyword response: ,autoresponse_add keyword | response"},
+  {"name":"autoresponse_list","usage":",autoresponse_list","category":"engagement","description":"List saved keyword responses."},
+  {"name":"autoresponse_remove","usage":",autoresponse_remove <trigger>","category":"engagement","description":"Remove a saved keyword response."},
+  {"name":"poll","usage":",poll <text>","category":"engagement","description":"Create a poll: ,poll Question | Option 1 | Option 2"},
+  {"name":"8ball","usage":",8ball <question>","category":"fun","description":"Ask the magic 8-ball a question."},
+  {"name":"choose","usage":",choose <options>","category":"fun","description":"Choose randomly between options separated by |."},
+  {"name":"clap","usage":",clap <text>","category":"fun","description":"Put 👏 between 👏 every 👏 word."},
+  {"name":"coinflip","usage":",coinflip","category":"fun","description":"Flip a coin."},
+  {"name":"compliment","usage":",compliment [member]","category":"fun","description":"Send a friendly, random compliment."},
+  {"name":"dare","usage":",dare","category":"fun","description":"Get a harmless, friendly dare."},
+  {"name":"emojify","usage":",emojify <text>","category":"fun","description":"Turn text into emoji-style letters."},
+  {"name":"fact","usage":",fact","category":"fun","description":"Get an interesting random fact."},
+  {"name":"fortune","usage":",fortune","category":"fun","description":"Get a random fortune."},
+  {"name":"joke","usage":",joke","category":"fun","description":"Get a clean joke."},
+  {"name":"meme","usage":",meme [topic=Monday morning]","category":"fun","description":"Generate a text meme using a topic."},
+  {"name":"mock","usage":",mock <text>","category":"fun","description":"Convert text into alternating-case meme text."},
+  {"name":"number","usage":",number [minimum=1] [maximum=100]","category":"fun","description":"Pick a random number: ,number 1 100."},
+  {"name":"pick","usage":",pick","category":"fun","description":"Pick a random member currently in the server."},
+  {"name":"quote","usage":",quote","category":"fun","description":"Create a quote card from a replied-to message."},
+  {"name":"rate","usage":",rate <subject>","category":"fun","description":"Give something a random ONYX rating."},
+  {"name":"reverse","usage":",reverse <text>","category":"fun","description":"Reverse a piece of text."},
+  {"name":"riddle","usage":",riddle","category":"fun","description":"Get a riddle. The answer is hidden in a spoiler."},
+  {"name":"roast","usage":",roast [member]","category":"fun","description":"Give a member a harmless, playful roast."},
+  {"name":"roll","usage":",roll [dice=1d6]","category":"fun","description":"Roll dice, e.g. ,roll 2d20."},
+  {"name":"rps","usage":",rps <choice>","category":"fun","description":"Play rock-paper-scissors against ONYX."},
+  {"name":"ship","usage":",ship <first> [second]","category":"fun","description":"Get a silly, platonic duo score for two members."},
+  {"name":"teamup","usage":",teamup <first> [second]","category":"fun","description":"Generate a silly teamwork score for two members."},
+  {"name":"trivia","usage":",trivia","category":"fun","description":"Start an interactive multiple-choice trivia question."},
+  {"name":"truth","usage":",truth","category":"fun","description":"Get a friendly conversation truth prompt."},
+  {"name":"wouldyourather","usage":",wouldyourather","category":"fun","description":"Get a would-you-rather prompt."},
+  {"name":"wyrvote","usage":",wyrvote <prompt>","category":"fun","description":"Post a two-option Would You Rather vote."},
+  {"name":"giveaway","usage":",giveaway","category":"giveaways","description":"Open the interactive ONYX giveaway creator."},
+  {"name":"reroll","usage":",reroll [message_id]","category":"giveaways","description":"Pick a new winner for an ended giveaway. Usage: ,reroll <message_id>"},
+  {"name":"honeypot","usage":",honeypot","category":"honeypot","description":"No description available."},
+  {"name":"honeypot create","usage":",honeypot create [channel_name=dont-type-here]","category":"honeypot","description":"Create the honeypot channel and enable automatic detection."},
+  {"name":"honeypot delete","usage":",honeypot delete","category":"honeypot","description":"No description available."},
+  {"name":"honeypot status","usage":",honeypot status","category":"honeypot","description":"No description available."},
+  {"name":"jail","usage":",jail <member> [reason=No reason provided]","category":"jail","description":"Jail a member until manually released."},
+  {"name":"jailcancel","usage":",jailcancel <member>","category":"jail","description":"Remove a member's scheduled jail release without releasing them."}
+  {"name":"jailinfo","usage":",jailinfo <member>","category":"Jail","description":"View a member's ONYX jail record."},
+  {"name":"jaillist","usage":",jaillist","category":"Jail","description":"List members currently jailed by ONYX."},
+  {"name":"jailtime","usage":",jailtime <member> <duration> [reason=Temporary jail]","category":"Jail","description":"Jail a member for a duration such as 30m, 2h, or 1d."},
+  {"name":"unjail","usage":",unjail <member>","category":"Jail","description":"Release a jailed member and restore saved roles."},
+  {"name":"lastfm","usage":",lastfm","category":"Last.fm","description":"Last.fm account and music commands."},
+  {"name":"lastfm account","usage":",lastfm account","category":"Last.fm","description":"Show the Last.fm account connected to your Discord account."},
+  {"name":"lastfm album","usage":",lastfm album <query>","category":"Last.fm","description":"Look up an album: ,lastfm album <artist> | <album>."},
+  {"name":"lastfm artist","usage":",lastfm artist <name>","category":"Last.fm","description":"Look up an artist: ,lastfm artist <artist name>."},
+  {"name":"lastfm compare","usage":",lastfm compare <member>","category":"Last.fm","description":"Compare your top artists with another member."},
+  {"name":"lastfm connect","usage":",lastfm connect","category":"Last.fm","description":"Start secure Last.fm authorization."},
+  {"name":"lastfm finish","usage":",lastfm finish","category":"Last.fm","description":"Complete Last.fm authorization after approving ONYX."},
+  {"name":"lastfm link","usage":",lastfm link <username>","category":"Last.fm","description":"Legacy option: link a public Last.fm username without authorization."},
+  {"name":"lastfm logout","usage":",lastfm logout","category":"Last.fm","description":"Disconnect your Last.fm account from ONYX."},
+  {"name":"lastfm nowplaying","usage":",lastfm nowplaying [member]","category":"Last.fm","description":"Show your or another member's current/most recent track."},
+  {"name":"lastfm profile","usage":",lastfm profile [member]","category":"Last.fm","description":"Show Last.fm listening profile statistics."},
+  {"name":"lastfm recent","usage":",lastfm recent [member] [limit=5]","category":"Last.fm","description":"Show recent tracks: recent [member] [limit]."},
+  {"name":"lastfm status","usage":",lastfm status","category":"Last.fm","description":"Check whether your Last.fm connection is available."},
+  {"name":"lastfm topalbums","usage":",lastfm topalbums [member] [period=overall] [limit=10]","category":"Last.fm","description":"Show top albums for a period."},
+  {"name":"lastfm topartists","usage":",lastfm topartists [member] [period=overall] [limit=10]","category":"Last.fm","description":"Show top artists for a period."},
+  {"name":"lastfm toptracks","usage":",lastfm toptracks [member] [period=overall] [limit=10]","category":"Last.fm","description":"Show top tracks. Optional period: overall, 7day, 1month, 3month, 6month, 12month."},
+  {"name":"lastfm track","usage":",lastfm track <query>","category":"Last.fm","description":"Look up a track: ,lastfm track <artist> | <track>."},
+  {"name":"leaderboard","usage":",leaderboard","category":"Levels","description":"No description available."},
+  {"name":"levelmessages","usage":",levelmessages <setting>","category":"Levels","description":"No description available."},
+  {"name":"levels","usage":",levels","category":"Levels","description":"No description available."},
+  {"name":"levels announcements","usage":",levels announcements <setting>","category":"Levels","description":"No description available."},
+  {"name":"levels channel","usage":",levels channel [channel]","category":"Levels","description":"No description available."},
+  {"name":"levels cooldown","usage":",levels cooldown <seconds>","category":"Levels","description":"No description available."},
+  {"name":"levels disable","usage":",levels disable","category":"Levels","description":"No description available."},
+  {"name":"levels enable","usage":",levels enable","category":"Levels","description":"No description available."},
+  {"name":"levels ignore","usage":",levels ignore","category":"Levels","description":"No description available."},
+  {"name":"levels ignore add","usage":",levels ignore add <channel>","category":"Levels","description":"No description available."},
+  {"name":"levels ignore list","usage":",levels ignore list","category":"Levels","description":"No description available."},
+  {"name":"levels ignore remove","usage":",levels ignore remove <channel>","category":"Levels","description":"No description available."},
+  {"name":"levels message","usage":",levels message <text>","category":"Levels","description":"No description available."},
+  {"name":"levels rate","usage":",levels rate <minimum> <maximum>","category":"Levels","description":"No description available."},
+  {"name":"levels reset","usage":",levels reset [target]","category":"Levels","description":"No description available."},
+  {"name":"levels reward","usage":",levels reward","category":"Levels","description":"No description available."},
+  {"name":"levels reward add","usage":",levels reward add <level> <role>","category":"Levels","description":"No description available."},
+  {"name":"levels reward list","usage":",levels reward list","category":"Levels","description":"No description available."},
+  {"name":"levels reward remove","usage":",levels reward remove <level>","category":"Levels","description":"No description available."},
+  {"name":"levels xp","usage":",levels xp","category":"Levels","description":"No description available."},
+  {"name":"levels xp add","usage":",levels xp add <member> <amount>","category":"Levels","description":"No description available."},
+  {"name":"levels xp remove","usage":",levels xp remove <member> <amount>","category":"Levels","description":"No description available."},
+  {"name":"levels xp set","usage":",levels xp set <member> <amount>","category":"Levels","description":"No description available."},
+  {"name":"prestige","usage":",prestige","category":"Levels","description":"No description available."},
+  {"name":"prestige leaderboard","usage":",prestige leaderboard","category":"Levels","description":"No description available."},
+  {"name":"rank","usage":",rank [member]","category":"Levels","description":"View your ONYX profile card."},
+  {"name":"logging_list","usage":",logging_list","category":"Logging","description":"No description available."},
+  {"name":"logging_remove","usage":",logging_remove [channel]","category":"Logging","description":"No description available."},
+  {"name":"logging_set","usage":",logging_set <channel>","category":"Logging","description":"No description available."},
+  {"name":"logging_test","usage":",logging_test","category":"Logging","description":"No description available."},
+  {"name":"editsnipe","usage":",editsnipe","category":"Member Tools","description":"Show the most recently edited message in this channel."},
+  {"name":"firstmessage","usage":",firstmessage","category":"Member Tools","description":"Link the first message in this channel."},
+  {"name":"membercount","usage":",membercount","category":"Member Tools","description":"Show the server member count."},
+  {"name":"roleinfo","usage":",roleinfo <role>","category":"Member Tools","description":"Show information about a server role."},
+  {"name":"servericon","usage":",servericon","category":"Member Tools","description":"Display the server icon."},
+  {"name":"snipe","usage":",snipe","category":"Member Tools","description":"Show the most recently deleted message in this channel."},
+  {"name":"ban","usage":",ban <member> [reason=No reason provided]","category":"Moderation","description":"Ban a member from this server."},
+  {"name":"case","usage":",case <case_id>","category":"Moderation","description":"Look up a moderation case by ID."},
+  {"name":"kick","usage":",kick <member> [reason=No reason provided]","category":"Moderation","description":"Kick a member from this server."},
+  {"name":"lock","usage":",lock","category":"Moderation","description":"Lock this text channel for @everyone."},
+  {"name":"modlogs","usage":",modlogs <member>","category":"Moderation","description":"View a member's recent moderation cases."},
+  {"name":"purge","usage":",purge <amount>","category":"Moderation","description":"Delete a number of recent messages."},
+  {"name":"slowmode","usage":",slowmode <seconds>","category":"Moderation","description":"Set this channel's slowmode in seconds."},
+  {"name":"timeout","usage":",timeout <member> <minutes> [reason=No reason provided]","category":"Moderation","description":"Temporarily timeout a member."},
+  {"name":"unlock","usage":",unlock","category":"Moderation","description":"Unlock this text channel for @everyone."}
+     {"name":"warn","usage":",warn <member> <reason>","category":"Moderation","description":"Give a member a recorded warning."},
+  {"name":"warn_escalation","usage":",warn_escalation <threshold> <action>","category":"Moderation","description":"Configure automatic action after repeated warnings."},
+  {"name":"warnings","usage":",warnings <member>","category":"Moderation","description":"View a member's warning history."},
+  {"name":"imute","usage":",imute <member> [reason=No reason provided]","category":"Moderation Extras","description":"Prevent a member from posting images and embeds."},
+  {"name":"modnote","usage":",modnote <member> <note>","category":"Moderation Extras","description":"Save a private staff note about a member."},
+  {"name":"modnotes","usage":",modnotes <member>","category":"Moderation Extras","description":"View saved staff notes for a member."},
+  {"name":"mute","usage":",mute <member> [reason=No reason provided]","category":"Moderation Extras","description":"Prevent a member from sending messages."},
+  {"name":"nick","usage":",nick <member> [nickname]","category":"Moderation Extras","description":"Set a member's server nickname."},
+  {"name":"rmute","usage":",rmute <member> [reason=No reason provided]","category":"Moderation Extras","description":"Prevent a member from adding reactions."},
+  {"name":"role_add","usage":",role_add <member> <role>","category":"Moderation Extras","description":"Give a member a role."},
+  {"name":"role_remove","usage":",role_remove <member> <role>","category":"Moderation Extras","description":"Remove a member's role."},
+  {"name":"setupmute","usage":",setupmute","category":"Moderation Extras","description":"Create or repair the Mute, Image Mute, and Reaction Mute roles."},
+  {"name":"unimute","usage":",unimute <member>","category":"Moderation Extras","description":"Remove a member's image mute."},
+  {"name":"unmute","usage":",unmute <member>","category":"Moderation Extras","description":"Remove a member's text mute."},
+  {"name":"unrmute","usage":",unrmute <member>","category":"Moderation Extras","description":"Remove a member's reaction mute."},
+  {"name":"updatepermissions","usage":",updatepermissions","category":"PermissionRefresh","description":"Reapply ONYX mute and jail permissions to all server channels."},
+  {"name":"prefix","usage":",prefix","category":"Prefix","description":"No description available."},
+  {"name":"prefix reset","usage":",prefix reset","category":"Prefix","description":"No description available."},
+  {"name":"prefix set","usage":",prefix set <new_prefix>","category":"Prefix","description":"No description available."},
+  {"name":"prefix show","usage":",prefix show","category":"Prefix","description":"No description available."},
+  {"name":"onyx","usage":",onyx","category":"PrestigeShop","description":"Open the central ONYX menu."},
+  {"name":"pequip","usage":",pequip <category> <item>","category":"PrestigeShop","description":"No description available."},
+  {"name":"pinventory","usage":",pinventory [member]","category":"PrestigeShop","description":"No description available."},
+  {"name":"preview","usage":",preview","category":"PrestigeShop","description":"Open a private cosmetic loadout preview before applying changes."},
+  {"name":"punequip","usage":",punequip <category>","category":"PrestigeShop","description":"No description available."},
+  {"name":"shop","usage":",shop","category":"PrestigeShop","description":"No description available."},
+  {"name":"report","usage":",report [details]","category":"Reports","description":"Submit a report. It is forwarded to the central ONYX report channel and this server's local channel, if configured."},
+  {"name":"setupcentralreports","usage":",setupcentralreports <channel>","category":"Reports","description":"(Owner only) Set the one central channel that receives reports from every server."},
+  {"name":"setupreport","usage":",setupreport <channel>","category":"Reports","description":"(Owner) Set the report channel for the current server."},
+  {"name":"autorole_list","usage":",autorole_list","category":"Roles","description":"List automatic join roles."},
+  {"name":"autorole_remove","usage":",autorole_remove <role>","category":"Roles","description":"Stop automatically assigning a role."},
+  {"name":"autorole_set","usage":",autorole_set <role>","category":"Roles","description":"Give a role to every new member."},
+  {"name":"reactionrole_add","usage":",reactionrole_add <channel> <message_id> <emoji> <role>","category":"Roles","description":"Connect an emoji reaction on a message to a role."},
+  {"name":"reactionrole_list","usage":",reactionrole_list","category":"Roles","description":"List configured reaction roles."},
+  {"name":"reactionrole_remove","usage":",reactionrole_remove <message_id> <emoji>","category":"Roles","description":"Remove an emoji-to-role connection."},
+  {"name":"role","usage":",role <role>","category":"Roles","description":"Give yourself or remove a self-assignable role."},
+  {"name":"role_create","usage":",role_create <name>","category":"Roles","description":"Create a new server role."},
+  {"name":"role_delete","usage":",role_delete <role>","category":"Roles","description":"Delete a server role."},
+  {"name":"rolepanel_create","usage":",rolepanel_create <role> <channel> [description=Click below to toggle this role.]","category":"Roles","description":"Post a persistent self-role button panel."},
+  {"name":"selfrole_add","usage":",selfrole_add <role>","category":"Roles","description":"Allow members to self-assign a role."},
+  {"name":"selfrole_list","usage":",selfrole_list","category":"Roles","description":"List self-assignable roles."},
+  {"name":"selfrole_remove","usage":",selfrole_remove <role>","category":"Roles","description":"Remove a role from the self-assignable list."},
+  {"name":"security_off","usage":",security_off","category":"Security","description":"Disable ONYX security alerts."},
+  {"name":"security_set","usage":",security_set <channel>","category":"Security","description":"Set the alert channel for security events."},
+  {"name":"serverdata","usage":",serverdata","category":"Server Setup","description":"Explain what ONYX stores for this server."},
+  {"name":"settings","usage":",settings","category":"Server Setup","description":"View this server's ONYX configuration."},
+  {"name":"setup","usage":",setup","category":"Server Setup","description":"Show the ONYX setup checklist for this server."},
+  {"name":"setup jail","usage":",setup jail","category":"Server Setup","description":"Create the private ONYX jail role, category, and channel."},
+  {"name":"channelcount","usage":",channelcount","category":"Server Tools","description":"Show counts of server channels."},
+  {"name":"emoji_list","usage":",emoji_list","category":"Server Tools","description":"List custom server emojis."},
+  {"name":"permissions","usage":",permissions [member]","category":"Server Tools","description":"Show a member's key server permissions."},
+  {"name":"rolelist","usage":",rolelist","category":"Server Tools","description":"List server roles."},
+  {"name":"access","usage":",access","category":"ServerAccess","description":"Manage ONYX's approved servers and access managers."},
+  {"name":"access allow","usage":",access allow <guild_id>","category":"ServerAccess","description":"Approve a server before inviting ONYX."},
+  {"name":"access audit","usage":",access audit","category":"ServerAccess","description":"Show currently joined servers without approval."},
+  {"name":"access enforce","usage":",access enforce","category":"ServerAccess","description":"Leave every currently joined server that is not approved."},
+  {"name":"access list","usage":",access list","category":"ServerAccess","description":"List all approved servers."},
+  {"name":"access manager","usage":",access manager","category":"ServerAccess","description":"Manage users who can approve servers. Owner only."},
+  {"name":"access manager add","usage":",access manager add <user_id>","category":"ServerAccess","description":"Allow a user to approve servers. Owner only."},
+  {"name":"access manager remove","usage":",access manager remove <user_id>","category":"ServerAccess","description":"Remove a user's server-approval access. Owner only."},
+  {"name":"access managers","usage":",access managers","category":"ServerAccess","description":"List users who can approve servers. Owner only."},
+  {"name":"access revoke","usage":",access revoke <guild_id>","category":"ServerAccess","description":"Revoke approval for a server. Owner only."},
+  {"name":"backup","usage":",backup","category":"ServerBackup","description":"Create or restore a server backup using its unique ID."},
+  {"name":"backup create","usage":",backup create","category":"ServerBackup","description":"Save a server backup and DM its unique ID."},
+  {"name":"backup restore","usage":",backup restore <backup_id>","category":"ServerBackup","description":"Restore a saved backup using its ID; no file upload needed."},
+  {"name":"ticket_setup","usage":",ticket_setup","category":"Tickets","description":"Post the ticket panel with request-type selection."},
+  {"name":"claim","usage":",claim","category":"TicketTools","description":"Claim the ticket you're currently in."},
+  {"name":"ticket","usage":",ticket","category":"TicketTools","description":"Manage tickets: claim, unclaim, add, remove, rename, priority, close, reopen, transfer, info, list, category."},
+  {"name":"ticket add","usage":",ticket add <member>","category":"TicketTools","description":"Give a member access to the current ticket."},
+  {"name":"ticket category","usage":",ticket category [category]","category":"TicketTools","description":"Set the category used for newly opened tickets."},
+  {"name":"ticket claim","usage":",ticket claim","category":"TicketTools","description":"Claim the current ticket."},
+  {"name":"ticket close","usage":",ticket close","category":"TicketTools","description":"Close the current ticket and save a transcript."},
+  {"name":"ticket info","usage":",ticket info","category":"TicketTools","description":"Show information about the current ticket."},
+  {"name":"ticket list","usage":",ticket list","category":"TicketTools","description":"List open tickets in this server."},
+  {"name":"ticket priority","usage":",ticket priority <priority>","category":"TicketTools","description":"Set ticket priority: low, normal, high, urgent."},
+  {"name":"ticket remove","usage":",ticket remove <member>","category":"TicketTools","description":"Remove a member's access to the current ticket."},
+  {"name":"ticket rename","usage":",ticket rename <name>","category":"TicketTools","description":"Rename the current ticket channel."},
+  {"name":"ticket reopen","usage":",ticket reopen <ticket_number>","category":"TicketTools","description":"Reopen a closed ticket by its ticket number."},
+  {"name":"ticket transfer","usage":",ticket transfer <member>","category":"TicketTools","description":"Transfer the current ticket to another staff member."},
+  {"name":"ticket unclaim","usage":",ticket unclaim","category":"TicketTools","description":"Unclaim the current ticket."},
+  {"name":"unclaim","usage":",unclaim","category":"TicketTools","description":"Release your claim on the current ticket."},
+  {"name":"avatar","usage":",avatar [member]","category":"Utility","description":"Display a member's avatar."},
+  {"name":"botinfo","usage":",botinfo","category":"Utility","description":"Show detailed information about ONYX."},
+  {"name":"ping","usage":",ping","category":"Utility","description":"Check the bot's latency."},
+  {"name":"serverinfo","usage":",serverinfo","category":"Utility","description":"Show detailed information about this server."},
+  {"name":"userinfo","usage":",userinfo [member]","category":"Utility","description":"Show detailed information about a member."},
+  {"name":"voicemaster_setup","usage":",voicemaster_setup","category":"Voice Master","description":"Create the ONYX VoiceMaster category, join-to-create channel, and control panel."},
+  {"name":"goodbye_set","usage":",goodbye_set <message>","category":"Welcome & Goodbye","description":"Set the goodbye message."},
+  {"name":"welcome_set","usage":",welcome_set <channel> <message>","category":"Welcome & Goodbye","description":"Set welcome channel and message."}
+];const searchInput = document.getElementById("commandSearch");
+const categorySelect = document.getElementById("categorySelect");
+const filterChips = document.getElementById("filterChips");
+const sections = document.getElementById("commandSections");
+const resultCount = document.getElementById("resultCount");
+const emptyState = document.getElementById("emptyState");
 
-["ban","Moderation","Ban a member."," ,ban"],
-["kick","Moderation","Kick a member."," ,kick"],
-["timeout","Moderation","Timeout a member."," ,timeout"],
-["untimeout","Moderation","Remove a timeout."," ,untimeout"],
-["warn","Moderation","Issue a member warning."," ,warn"],
-["warnings","Moderation","View member warnings."," ,warnings"],
-["purge","Moderation","Bulk-delete messages."," ,purge"],
-["lock","Moderation","Lock a channel."," ,lock"],
-["unlock","Moderation","Unlock a channel."," ,unlock"],
-["slowmode","Moderation","Configure channel slowmode."," ,slowmode"],
+const categories = [...new Set(commands.map(c => c.category))]
+  .sort((a,b) => a.localeCompare(b));
 
-["antinuke","Security","Manage anti-nuke protection."," ,antinuke"],
-["setup jail","Security","Configure the jail system."," ,setup jail"],
-["shh","Security","Manage the quiet-role feature."," ,shh"],
+categories.forEach(category => {
+  const option = document.createElement("option");
+  option.value = category;
+  option.textContent = category;
+  categorySelect.appendChild(option);
 
-["channel create","Channel Management","Create a channel."," ,channel create"],
-["channel delete","Channel Management","Delete a channel."," ,channel delete"],
-["nuke","Channel Management","Recreate a channel."," ,nuke"],
+  const chip = document.createElement("button");
+  chip.className = "filter-chip";
+  chip.type = "button";
+  chip.innerHTML = `${category} <span>${commands.filter(c => c.category === category).length}</span>`;
+  chip.addEventListener("click", () => {
+    categorySelect.value = categorySelect.value === category ? "" : category;
+    renderCommands();
+  });
+  filterChips.appendChild(chip);
+});
 
-["setup","Server Setup","Configure ONYX for your server."," ,setup"],
-["settings","Server Setup","View server settings."," ,settings"],
-["serverdata","Server Setup","View server data information."," ,serverdata"],
-["prefix","Server Setup","View or manage the prefix."," ,prefix"],
-["prefix set","Server Setup","Change the server prefix."," ,prefix set"],
-["prefix reset","Server Setup","Reset the server prefix."," ,prefix reset"],
+function renderCommands() {
+  const query = searchInput.value.toLowerCase().trim();
+  const selected = categorySelect.value;
 
-["poll","Engagement","Create a community poll."," ,poll"],
-["autoresponse_add","Engagement","Add an automatic response."," ,autoresponse_add"],
-["autoresponse_remove","Engagement","Remove an automatic response."," ,autoresponse_remove"],
-["autoresponse_list","Engagement","List automatic responses."," ,autoresponse_list"],
+  const filtered = commands.filter(command => {
+    const matchesCategory = !selected || command.category === selected;
+    const searchable = [
+      command.name,
+      command.usage,
+      command.description,
+      command.category
+    ].join(" ").toLowerCase();
 
-["giveaway","Giveaways","Open the giveaway command."," ,giveaway"],
-["gcreate","Giveaways","Create a giveaway."," ,gcreate"],
-["reroll","Giveaways","Reroll a giveaway winner."," ,reroll"],
+    return matchesCategory && searchable.includes(query);
+  });
 
-["report","Tickets & Reports","Submit a report."," ,report"],
-["setupreport","Tickets & Reports","Configure the report system."," ,setupreport"],
-["setupcentralreports","Tickets & Reports","Configure central reporting."," ,setupcentralreports"],
-["ticket_setup","Tickets & Reports","Configure the ticket system."," ,ticket_setup"],
+  sections.innerHTML = "";
 
-["backup create","Backups","Create a server backup."," ,backup create"],
-["backup restore","Backups","Restore a server backup."," ,backup restore"],
+  categories.forEach(category => {
+    const items = filtered.filter(c => c.category === category);
+    if (!items.length) return;
 
-["logging_set","Logging","Configure a logging channel."," ,logging_set"],
-["logging_remove","Logging","Remove a logging configuration."," ,logging_remove"],
-["logging_list","Logging","List logging configurations."," ,logging_list"],
-["logging_test","Logging","Test the logging configuration."," ,logging_test"],
+    const section = document.createElement("section");
+    section.className = "command-category";
 
-["voicemaster_setup","VoiceMaster","Configure VoiceMaster."," ,voicemaster_setup"],
+    const heading = document.createElement("div");
+    heading.className = "category-heading";
 
-["role_create","Roles","Create a server role."," ,role_create"],
-["role_delete","Roles","Delete a server role."," ,role_delete"],
-["autorole","Roles","Manage automatic roles."," ,autorole"],
-["reactionrole","Roles","Manage reaction roles."," ,reactionrole"],
+    const title = document.createElement("h2");
+    title.textContent = category;
 
-["embed","Custom Commands & Embeds","Create a custom embed."," ,embed"],
-["custom_add","Custom Commands & Embeds","Create a custom command."," ,custom_add"],
-["custom_remove","Custom Commands & Embeds","Remove a custom command."," ,custom_remove"],
-["copyembed","Custom Commands & Embeds","Copy an embed from a message."," ,copyembed"],
+    const count = document.createElement("span");
+    count.className = "category-count";
+    count.textContent = `${items.length} commands`;
 
-["aliases","Utility","View command aliases."," ,aliases"],
-["lastfm","Last.fm","Open Last.fm commands."," ,lastfm"],
+    heading.append(title, count);
 
-["shh_whitelist_add","Owner Tools","Add a user to the shh whitelist."," ,shh_whitelist_add"],
-["shh_whitelist_remove","Owner Tools","Remove a user from the shh whitelist."," ,shh_whitelist_remove"],
-["shh_set_role","Owner Tools","Set the shh role."," ,shh_set_role"]
-];
+    const list = document.createElement("div");
+    list.className = "command-list";
 
-const categories=[...new Set(commands.map(c=>c[1]))];
-const search=document.getElementById("search");
-const select=document.getElementById("categorySelect");
-const buttons=document.getElementById("categories");
-const directory=document.getElementById("directory");
-const results=document.getElementById("results");
-const empty=document.getElementById("empty");
-let active="all";
+    items.forEach(command => {
+      const card = document.createElement("article");
+      card.className = "command-entry";
 
-function selectCategory(cat){
-active=cat;
-document.querySelectorAll(".filter").forEach(b=>b.classList.toggle("active",b.dataset.category===cat));
-select.value=cat;
-render();
+      const top = document.createElement("div");
+      top.className = "command-entry-top";
+
+      const name = document.createElement("h3");
+      name.textContent = command.name;
+
+      const copy = document.createElement("button");
+      copy.className = "copy-command";
+      copy.type = "button";
+      copy.textContent = "Copy";
+
+      copy.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(command.usage);
+          copy.textContent = "Copied!";
+          setTimeout(() => copy.textContent = "Copy", 1200);
+        } catch {
+          copy.textContent = "Copy unavailable";
+        }
+      });
+
+      top.append(name, copy);
+
+      const description = document.createElement("p");
+      description.textContent = command.description;
+
+      const usage = document.createElement("code");
+      usage.className = "command-usage";
+      usage.textContent = command.usage;
+
+      card.append(top, description, usage);
+      list.appendChild(card);
+    });
+
+    section.append(heading, list);
+    sections.appendChild(section);
+  });
+
+  resultCount.textContent =
+    `Showing ${filtered.length} of ${commands.length} commands`;
+
+  emptyState.style.display = filtered.length ? "none" : "block";
+
+  document.querySelectorAll(".filter-chip").forEach(chip => {
+    const category = chip.textContent.trim().replace(/\s+\d+$/, "");
+    chip.classList.toggle("active", categorySelect.value === category);
+  });
 }
 
-function setup(){
-const all=document.createElement("button");
-all.className="filter active";
-all.dataset.category="all";
-all.textContent="All Commands";
-all.onclick=()=>selectCategory("all");
-buttons.appendChild(all);
+searchInput.addEventListener("input", renderCommands);
+categorySelect.addEventListener("change", renderCommands);
 
-categories.forEach(cat=>{
-const b=document.createElement("button");
-b.className="filter";
-b.dataset.category=cat;
-b.textContent=cat;
-b.onclick=()=>selectCategory(cat);
-buttons.appendChild(b);
-const option=document.createElement("option");
-option.value=cat;
-option.textContent=cat;
-select.appendChild(option);
-});
-}
-
-function render(){
-const q=search.value.toLowerCase().trim();
-const filtered=commands.filter(c=>(active==="all"||c[1]===active)&&c.join(" ").toLowerCase().includes(q));
-results.textContent=filtered.length+" commands shown · Prefix: ,";
-directory.innerHTML="";
-
-categories.forEach(cat=>{
-const group=filtered.filter(c=>c[1]===cat);
-if(!group.length)return;
-
-const section=document.createElement("section");
-section.className="group";
-const heading=document.createElement("h2");
-heading.textContent=cat;
-section.appendChild(heading);
-
-const grid=document.createElement("div");
-grid.className="cards";
-
-group.forEach(c=>{
-const card=document.createElement("article");
-card.className="command";
-const top=document.createElement("div");
-top.className="top";
-const name=document.createElement("code");
-name.textContent=","+c[0];
-const tag=document.createElement("span");
-tag.className="tag";
-tag.textContent=cat;
-top.append(name,tag);
-
-const description=document.createElement("p");
-description.textContent=c[2];
-const usage=document.createElement("div");
-usage.className="usage";
-usage.textContent="Usage: "+c[3].trim();
-card.append(top,description,usage);
-grid.appendChild(card);
-});
-
-section.appendChild(grid);
-directory.appendChild(section);
-});
-
-empty.style.display=filtered.length?"none":"block";
-}
-
-setup();
-search.addEventListener("input",render);
-select.addEventListener("change",()=>selectCategory(select.value));
-render();
+renderCommands();
 </script>
 </body>
 </html>
