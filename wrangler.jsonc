@@ -4,8 +4,7 @@
   "name": "onyx",
   "compatibility_date": "2026-11-08",
   "assets": {
-    "directory": "./",
-    "binding": "ASSETS"
+    "directory": "./"
   }
 }
 
