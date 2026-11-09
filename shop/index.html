@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#05090b">
+<title>Prestige Shop | ONYX</title>
+<link rel="stylesheet" href="../assets/styles.css">
+
+<style>
+.shop-wrap {
+  width:min(1160px,calc(100% - 36px));
+  margin:auto;
+  padding:65px 0 90px;
+}
+.shop-heading {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:25px;
+  flex-wrap:wrap;
+}
+.shop-heading h1 {
+  font-size:clamp(45px,7vw,76px);
+  margin:12px 0;
+}
+.shop-description {
+  color:var(--muted);
+  max-width:650px;
+}
+.account {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:13px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  border-radius:4px;
+}
+.account img {
+  width:42px;
+  height:42px;
+  border-radius:50%;
+}
+.account small {
+  display:block;
+  color:var(--muted);
+}
+.balance {
+  margin:35px 0;
+  padding:23px;
+  border:1px solid #23605c;
+  background:#0b1b1d;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  flex-wrap:wrap;
+}
+.balance strong {
+  font:26px 'DM Mono',monospace;
+  color:var(--teal);
+}
+.shop-toolbar {
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+  margin:25px 0;
+}
+.shop-toolbar button,
+.shop-item button {
+  cursor:pointer;
+  border:1px solid #36565a;
+  background:#0b1518;
+  color:var(--text);
+  padding:11px 15px;
+  border-radius:3px;
+  font-weight:800;
+  font-size:11px;
+}
+.shop-toolbar button.active,
+.shop-item button.buy {
+  background:var(--teal);
+  color:#031011;
+  border-color:var(--teal);
+}
+.shop-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:15px;
+}
+.shop-item {
+  padding:22px;
+  border:1px solid var(--line);
+  background:linear-gradient(145deg,#0d191c,#080e11);
+  border-radius:4px;
+  display:flex;
+  flex-direction:column;
+  min-height:220px;
+}
+.shop-item .category {
+  font:10px 'DM Mono',monospace;
+  color:var(--teal);
+  text-transform:uppercase;
+  letter-spacing:.15em;
+}
+.shop-item h2 {
+  font-size:20px;
+  margin:13px 0 5px;
+}
+.shop-item p {
+  font-size:13px;
+  color:var(--muted);
+  flex:1;
+}
+.shop-meta {
+  display:flex;
+  justify-content:space-between;
+  font:11px 'DM Mono',monospace;
+  margin-bottom:14px;
+}
+.shop-item button {
+  width:100%;
+}
+.shop-item button:disabled {
+  opacity:.5;
+  cursor:not-allowed;
+}
+.shop-message {
+  min-height:25px;
+  color:var(--teal);
+  font-size:13px;
+}
+.login-panel {
+  text-align:center;
+  padding:45px 25px;
+  margin:40px 0;
+  border:1px solid var(--line);
+  background:var(--panel);
+}
+.login-panel p {
+  color:var(--muted);
+}
+.empty {
+  grid-column:1/-1;
+  text-align:center;
+  padding:35px;
+  color:var(--muted);
+  border:1px dashed var(--line);
+}
+@media(max-width:800px) {
+  .shop-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px) {
+  .shop-grid {grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <img class="brand-mark" src="../assets/onyx-mark.png" alt="">
+    ONYX
+  </a>
+
+  <button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+
+  <nav>
+    <a href="../index.html">Home</a>
+    <a href="../features.html">Features</a>
+    <a href="../docs.html">Documentation</a>
+    <a class="active" href="./">Prestige Shop</a>
+    <a href="../support.html">Support</a>
+  </nav>
+</header>
+
+<main class="shop-wrap">
+
+  <section class="shop-heading">
+    <div>
+      <div class="eyebrow">ONYX GLOBAL PROGRESSION</div>
+      <h1>Prestige <em>Shop.</em></h1>
+      <p class="shop-description">
+        Unlock exclusive profile cosmetics using Prestige Tokens
+        earned through your ONYX progression.
+      </p>
+    </div>
+
+    <div class="account" id="account" hidden>
+      <img id="avatar" alt="Discord avatar">
+      <div>
+        <strong id="username"></strong>
+        <small>Discord account</small>
+      </div>
+      <button class="button" id="logout">Sign out</button>
+    </div>
+  </section>
+
+  <section class="login-panel" id="login-panel">
+    <h2>Sign in to ONYX</h2>
+    <p>
+      Connect your Discord account to view your Prestige Tokens,
+      shop inventory, and profile cosmetics.
+    </p>
+    <a class="button primary"
+       href="https://api.onyxdiscord.com/auth/discord">
+       Continue with Discord ↗
+    </a>
+  </section>
+
+  <section id="shop-content" hidden>
+
+    <div class="balance">
+      <div>
+        <div class="eyebrow">YOUR PRESTIGE BALANCE</div>
+        <strong><span id="tokens">0</span> TOKENS</strong>
+      </div>
+
+      <div>
+        <span id="owned-count">0</span> cosmetics owned
+      </div>
+    </div>
+
+    <div id="message" class="shop-message"
+         role="status" aria-live="polite"></div>
+
+    <div class="shop-toolbar" id="filters">
+      <button class="active" data-filter="all">All Items</button>
+      <button data-filter="frame">Frames</button>
+      <button data-filter="theme">Themes</button>
+      <button data-filter="emblem">Emblems</button>
+      <button data-filter="effect">Effects</button>
+      <button data-filter="owned">My Inventory</button>
+    </div>
+
+    <div id="shop-grid" class="shop-grid">
+      <div class="empty">Loading shop...</div>
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="../index.html">
+      <img class="brand-mark" src="../assets/onyx-mark.png" alt="">
+      ONYX
+    </a>
+    <span>© <span data-year></span> ONYX. All rights reserved.</span>
+    <div>
+      <a href="../docs.html">Documentation</a>
+      <a href="../terms.html">Terms</a>
+      <a href="../privacy.html">Privacy</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/site.js"></script>
+<script src="../assets/shop.js"></script>
+
+</body>
+</html>
