@@ -1,1 +1,152 @@
-<!doctype html><html lang="en"><head><meta name="theme-color" content="#05090b"><link rel="icon" type="image/png" href="assets/onyx-mark.png"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Features — ONYX</title><link rel="stylesheet" href="assets/styles.css"></head><body><header class="topbar"><a class="brand" href="index.html"><img class="brand-mark" src="assets/onyx-mark.png" alt=""> ONYX</a><button class="menu-toggle">☰</button><nav><a href="index.html">Home</a><a class="active" href="features.html">Features</a><a href="docs.html">Documentation</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><a href="support.html">Support</a><a class="nav-cta" href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&scope=bot%20applications.commands&permissions=8">Authorize ONYX ↗</a></nav></header><main class="wrap page"><div class="eyebrow">THE TOOLKIT</div><h1>Built for the<br><em>whole server.</em></h1><p class="lead">A growing set of connected systems for community management, safety, and engagement.</p><div class="detail-list"><article id="moderation"><b>01</b><div><h2>Moderation & automod</h2><p>Moderation commands, staff permissions, automod rules, logs, and server utilities.</p></div></article><article id="security"><b>02</b><div><h2>Server security</h2><p>Anti-nuke thresholds, response settings, jail workflows, staff restrictions, and event logging.</p></div></article><article id="progression"><b>03</b><div><h2>Global leveling & Prestige</h2><p>Global XP, leaderboards, ten Prestige tiers, Prestige Master progression, milestone titles, and profile cards.</p></div></article><article><b>04</b><div><h2>Prestige Shop & inventory</h2><p>Frames, themes, emblems, visual effects, cosmetic ownership, and previews before purchase.</p></div></article><article><b>05</b><div><h2>Community utilities</h2><p>Welcome messages, auto roles, reaction roles, giveaways, custom commands, tickets, and reporting workflows.</p></div></article><article><b>06</b><div><h2>Embed creator & copier</h2><p>Build rich embeds with the visual editor, copy an embed from an existing message, preview changes, and manage reusable server templates.</p><a href="docs.html#embeds">View embed command guide →</a></div></article></div><div class="notice"><b>Feature availability</b><p>Features may be under development, limited to certain servers, or subject to change. Check the ONYX support server for current availability and setup guidance.</p></div></main><footer><div class="wrap foot"><a class="brand" href="index.html"><img class="brand-mark" src="assets/onyx-mark.png" alt=""> ONYX</a><span>© <span data-year></span> ONYX</span><div><a href="docs.html">Documentation</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><a href="support.html">Support</a></div></div></footer><script src="assets/site.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#05090b">
+  <meta name="description" content="Explore ONYX Discord bot features: moderation, security, global leveling, Prestige, cosmetics, tickets, roles, and community tools.">
+  <link rel="icon" href="/assets/onyx-mark.png">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <title>Features — ONYX</title>
+  <style>
+    .feature-hero{padding:82px 0 46px}
+    .feature-hero h1{font-size:clamp(52px,8vw,88px)}
+    .feature-hero .lead{max-width:720px}
+    .feature-stats{display:flex;flex-wrap:wrap;gap:10px;margin:28px 0 0}
+    .feature-stat{border:1px solid var(--line);background:#0b1518;padding:12px 16px;border-radius:3px}
+    .feature-stat strong{display:block;color:var(--teal);font:18px 'DM Mono',monospace}
+    .feature-stat span{font-size:10px;color:var(--muted);letter-spacing:.1em}
+    .feature-nav{display:flex;gap:8px;flex-wrap:wrap;margin:26px 0 8px}
+    .feature-nav a{border:1px solid var(--line);padding:8px 11px;border-radius:3px;font-size:11px;color:#c6d0dc}
+    .feature-nav a:hover{border-color:var(--teal);color:var(--teal)}
+    .feature-block{padding:42px 0;border-top:1px solid var(--line);scroll-margin-top:100px}
+    .feature-block-head{display:grid;grid-template-columns:90px 1fr;gap:18px;align-items:start}
+    .feature-number{font:12px 'DM Mono',monospace;color:var(--teal);padding-top:8px}
+    .feature-block h2{font-size:clamp(27px,4vw,38px);line-height:1.15;letter-spacing:-.05em;margin:0 0 10px}
+    .feature-block .intro{color:var(--muted);max-width:720px;margin:0}
+    .feature-items{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:26px 0 0 108px}
+    .feature-item{padding:19px;border:1px solid var(--line);background:linear-gradient(145deg,#0d191c,#080e11);border-radius:4px;min-height:145px}
+    .feature-item b{display:block;color:var(--teal);font:10px 'DM Mono',monospace;letter-spacing:.12em;margin-bottom:11px}
+    .feature-item h3{font-size:16px;margin:0 0 7px}
+    .feature-item p{font-size:12px;color:var(--muted);line-height:1.75;margin:0}
+    .feature-callout{margin:25px 0 0 108px;padding:18px 20px;border:1px solid #23605c;background:#0b1b1d;border-radius:4px}
+    .feature-callout strong{color:var(--teal)}
+    .feature-callout p{color:var(--muted);font-size:13px;margin:5px 0 0}
+    .feature-cta{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:36px;border:1px solid #23605c;background:radial-gradient(ellipse at 80% 50%,#103033 0,transparent 60%),#0b1518;border-radius:4px;margin:45px 0 20px}
+    .feature-cta h2{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:8px 0}
+    .feature-cta p{color:var(--muted);font-size:13px;margin:0}
+    @media(max-width:850px){.feature-items{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:650px){
+      .feature-hero{padding-top:60px}
+      .feature-block-head{grid-template-columns:1fr;gap:4px}
+      .feature-items,.feature-callout{margin-left:0}
+      .feature-items{grid-template-columns:1fr}
+      .feature-cta{display:block;padding:24px}
+      .feature-cta .button{margin-top:18px}
+    }
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/"><img class="brand-mark" src="/assets/onyx-mark.png" alt="">ONYX</a>
+  <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+  <nav>
+    <a href="/">HOME</a>
+    <a class="active" href="/features">FEATURES</a>
+    <a href="/docs">DOCUMENTATION</a>
+    <a href="/commands/">COMMANDS</a>
+    <a href="/support">SUPPORT</a>
+    <a class="nav-cta" href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8" target="_blank" rel="noopener">ADD ONYX</a>
+  </nav>
+</header>
+
+<main>
+  <section class="feature-hero wrap">
+    <div class="eyebrow">ONYX / CAPABILITIES</div>
+    <h1>One system.<br><em>Every angle.</em></h1>
+    <p class="lead">From everyday moderation to long-term progression, ONYX brings the tools that help communities stay organized, protected, and active.</p>
+    <div class="actions">
+      <a class="button primary" href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8" target="_blank" rel="noopener">AUTHORIZE ONYX ↗</a>
+      <a class="button" href="/commands/">BROWSE COMMANDS →</a>
+    </div>
+    <div class="feature-stats">
+      <div class="feature-stat"><strong>234</strong><span>PUBLIC COMMANDS</span></div>
+      <div class="feature-stat"><strong>33</strong><span>COMMAND CATEGORIES</span></div>
+      <div class="feature-stat"><strong>GLOBAL</strong><span>LEVEL PROGRESSION</span></div>
+    </div>
+    <div class="feature-nav">
+      <a href="#moderation">Moderation</a><a href="#security">Security</a><a href="#progression">Progression</a><a href="#shop">Prestige Shop</a><a href="#community">Community</a><a href="#server-tools">Server tools</a>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <article class="feature-block" id="moderation">
+      <div class="feature-block-head"><div class="feature-number">01 / CONTROL</div><div><h2>Moderation that keeps things moving.</h2><p class="intro">Give your staff practical tools for handling day-to-day situations, reviewing past actions, and keeping conversations manageable.</p></div></div>
+      <div class="feature-items">
+        <div class="feature-item"><b>STAFF TOOLS</b><h3>Moderation actions</h3><p>Ban, kick, timeout, warn, mute, and manage member restrictions with dedicated commands.</p></div>
+        <div class="feature-item"><b>CASE HISTORY</b><h3>Warnings & modlogs</h3><p>Review warning history, look up moderation cases, and inspect a member's recent moderation records.</p></div>
+        <div class="feature-item"><b>CHANNEL CONTROL</b><h3>Channel management</h3><p>Lock and unlock channels, configure slowmode, and use bulk message-management tools.</p></div>
+      </div>
+    </article>
+
+    <article class="feature-block" id="security">
+      <div class="feature-block-head"><div class="feature-number">02 / PROTECTION</div><div><h2>More visibility. More control.</h2><p class="intro">ONYX includes protection and monitoring tools designed to help server teams configure safeguards and respond to unusual activity.</p></div></div>
+      <div class="feature-items">
+        <div class="feature-item"><b>ANTI-NUKE</b><h3>Server protection</h3><p>Anti-nuke controls and response settings help protect important server assets from destructive activity.</p></div>
+        <div class="feature-item"><b>ANTI-RAID</b><h3>Raid safeguards</h3><p>Protection features include anti-raid controls and honeypot tools for additional server defenses.</p></div>
+        <div class="feature-item"><b>AUTOMOD</b><h3>Automated filtering</h3><p>Configure AutoMod and filtering features to help manage unwanted content and repeat disruptions.</p></div>
+      </div>
+    </article>
+
+    <article class="feature-block" id="progression">
+      <div class="feature-block-head"><div class="feature-number">03 / PROGRESSION</div><div><h2>Make participation count.</h2><p class="intro">ONYX uses global leveling, so a member's progression follows their ONYX profile rather than restarting separately in every server.</p></div></div>
+      <div class="feature-items">
+        <div class="feature-item"><b>GLOBAL LEVELS</b><h3>Progress across servers</h3><p>Members earn XP and advance through the leveling system as they participate in communities using ONYX.</p></div>
+        <div class="feature-item"><b>PRESTIGE I–X</b><h3>Milestones worth earning</h3><p>Reach Level 60 to advance through Prestige. Each Prestige milestone awards 10 Prestige Tokens.</p></div>
+        <div class="feature-item"><b>PRESTIGE MASTER</b><h3>Long-term titles</h3><p>After Prestige X, continue through Prestige Master levels and unlock profile title milestones up to level 1,000.</p></div>
+      </div>
+    </article>
+
+    <article class="feature-block" id="shop">
+      <div class="feature-block-head"><div class="feature-number">04 / CUSTOMIZATION</div><div><h2>Your profile. Your loadout.</h2><p class="intro">The Prestige Shop gives progression a visual payoff with collectible profile-card cosmetics.</p></div></div>
+      <div class="feature-items">
+        <div class="feature-item"><b>FRAMES</b><h3>Set the border</h3><p>Collect Steel, Neon, Elite, Obsidian, and Legendary frames for your ONYX profile card.</p></div>
+        <div class="feature-item"><b>THEMES & EMBLEMS</b><h3>Make it yours</h3><p>Choose from themed card backgrounds and collectible emblems as you unlock them.</p></div>
+        <div class="feature-item"><b>VISUAL EFFECTS</b><h3>Add a finishing touch</h3><p>Equip effects such as Teal Glow, Silver Shine, Electric Pulse, and Cosmic Aura.</p></div>
+      </div>
+      <div class="feature-callout"><strong>Website shop integration is being built.</strong><p>Discord sign-in, live inventory, token purchases, and equipping cosmetics from the website will become available after the secure account and database API are connected. Until then, use ONYX's in-Discord shop and inventory commands.</p></div>
+    </article>
+
+    <article class="feature-block" id="community">
+      <div class="feature-block-head"><div class="feature-number">05 / COMMUNITY</div><div><h2>Keep your community connected.</h2><p class="intro">Tools for welcoming members, organizing support, assigning roles, and giving people reasons to participate.</p></div></div>
+      <div class="feature-items">
+        <div class="feature-item"><b>WELCOME</b><h3>First impressions</h3><p>Configure welcome and goodbye messages to make arrivals and departures feel intentional.</p></div>
+        <div class="feature-item"><b>TICKETS & REPORTS</b><h3>Structured support</h3><p>Set up ticket panels, claim and manage tickets, save transcripts, and route member reports.</p></div>
+        <div class="feature-item"><b>ROLES & ENGAGEMENT</b><h3>Member participation</h3><p>Use self-assignable roles, reaction roles, role panels, giveaways, and engagement tools.</p></div>
+      </div>
+    </article>
+
+    <article class="feature-block" id="server-tools">
+      <div class="feature-block-head"><div class="feature-number">06 / SERVER TOOLS</div><div><h2>The useful details, in one place.</h2><p class="intro">Round out your server setup with tools for visibility, organization, and everyday administration.</p></div></div>
+      <div class="feature-items">
+        <div class="feature-item"><b>SERVER INSIGHT</b><h3>Quick information</h3><p>View server, member, role, channel, emoji, and user information with utility commands.</p></div>
+        <div class="feature-item"><b>BACKUPS</b><h3>Save server configurations</h3><p>Create a server backup and restore a saved backup using its unique ID.</p></div>
+        <div class="feature-item"><b>LAST.FM & VOICE</b><h3>More ways to connect</h3><p>Last.fm integration and VoiceMaster setup add music-profile and voice-channel utilities.</p></div>
+      </div>
+    </article>
+
+    <section class="feature-cta">
+      <div><div class="eyebrow">EXPLORE THE FULL TOOLSET</div><h2>See every command.</h2><p>Browse the complete public command directory and find the right setup for your server.</p></div>
+      <a class="button primary" href="/commands/">OPEN COMMAND DIRECTORY ↗</a>
+    </section>
+  </section>
+</main>
+
+<footer><div class="wrap foot">
+  <a class="brand" href="/"><img class="brand-mark" src="/assets/onyx-mark.png" alt="">ONYX</a>
+  <span>© <span data-year></span> ONYX. All rights reserved.</span>
+  <div><a href="/docs">Documentation</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/support">Support</a></div>
+</div></footer>
+<script src="/assets/site.js"></script>
+</body>
+</html>
