@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -32,6 +33,7 @@
     .feature-callout{margin:25px 0 0 108px;padding:18px 20px;border:1px solid #23605c;background:#0b1b1d;border-radius:4px}
     .feature-callout strong{color:var(--teal)}
     .feature-callout p{color:var(--muted);font-size:13px;margin:5px 0 0}
+    .feature-callout a{color:var(--teal);text-decoration:underline}
     .feature-cta{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:36px;border:1px solid #23605c;background:radial-gradient(ellipse at 80% 50%,#103033 0,transparent 60%),#0b1518;border-radius:4px;margin:45px 0 20px}
     .feature-cta h2{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:8px 0}
     .feature-cta p{color:var(--muted);font-size:13px;margin:0}
@@ -55,6 +57,7 @@
     <a class="active" href="/features">FEATURES</a>
     <a href="/docs">DOCUMENTATION</a>
     <a href="/commands/">COMMANDS</a>
+    <a href="/shop/">PRESTIGE SHOP</a>
     <a href="/support">SUPPORT</a>
     <a class="nav-cta" href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8" target="_blank" rel="noopener">ADD ONYX</a>
   </nav>
@@ -84,7 +87,7 @@
       <div class="feature-block-head"><div class="feature-number">01 / CONTROL</div><div><h2>Moderation that keeps things moving.</h2><p class="intro">Give your staff practical tools for handling day-to-day situations, reviewing past actions, and keeping conversations manageable.</p></div></div>
       <div class="feature-items">
         <div class="feature-item"><b>STAFF TOOLS</b><h3>Moderation actions</h3><p>Ban, kick, timeout, warn, mute, and manage member restrictions with dedicated commands.</p></div>
-        <div class="feature-item"><b>CASE HISTORY</b><h3>Warnings & modlogs</h3><p>Review warning history, look up moderation cases, and inspect a member's recent moderation records.</p></div>
+        <div class="feature-item"><b>CASE HISTORY</b><h3>Warnings &amp; modlogs</h3><p>Review warning history, look up moderation cases, and inspect a member's recent moderation records.</p></div>
         <div class="feature-item"><b>CHANNEL CONTROL</b><h3>Channel management</h3><p>Lock and unlock channels, configure slowmode, and use bulk message-management tools.</p></div>
       </div>
     </article>
@@ -111,18 +114,21 @@
       <div class="feature-block-head"><div class="feature-number">04 / CUSTOMIZATION</div><div><h2>Your profile. Your loadout.</h2><p class="intro">The Prestige Shop gives progression a visual payoff with collectible profile-card cosmetics.</p></div></div>
       <div class="feature-items">
         <div class="feature-item"><b>FRAMES</b><h3>Set the border</h3><p>Collect Steel, Neon, Elite, Obsidian, and Legendary frames for your ONYX profile card.</p></div>
-        <div class="feature-item"><b>THEMES & EMBLEMS</b><h3>Make it yours</h3><p>Choose from themed card backgrounds and collectible emblems as you unlock them.</p></div>
+        <div class="feature-item"><b>THEMES &amp; EMBLEMS</b><h3>Make it yours</h3><p>Choose from themed card backgrounds and collectible emblems as you unlock them.</p></div>
         <div class="feature-item"><b>VISUAL EFFECTS</b><h3>Add a finishing touch</h3><p>Equip effects such as Teal Glow, Silver Shine, Electric Pulse, and Cosmic Aura.</p></div>
       </div>
-      <div class="feature-callout"><strong>Website shop integration is being built.</strong><p>Discord sign-in, live inventory, token purchases, and equipping cosmetics from the website will become available after the secure account and database API are connected. Until then, use ONYX's in-Discord shop and inventory commands.</p></div>
+      <div class="feature-callout">
+        <strong>Your ONYX profile, customized your way.</strong>
+        <p>Visit the <a href="/shop/">Prestige Shop</a> to sign in with Discord, browse cosmetics, manage your inventory, and equip items to your profile card.</p>
+      </div>
     </article>
 
     <article class="feature-block" id="community">
       <div class="feature-block-head"><div class="feature-number">05 / COMMUNITY</div><div><h2>Keep your community connected.</h2><p class="intro">Tools for welcoming members, organizing support, assigning roles, and giving people reasons to participate.</p></div></div>
       <div class="feature-items">
         <div class="feature-item"><b>WELCOME</b><h3>First impressions</h3><p>Configure welcome and goodbye messages to make arrivals and departures feel intentional.</p></div>
-        <div class="feature-item"><b>TICKETS & REPORTS</b><h3>Structured support</h3><p>Set up ticket panels, claim and manage tickets, save transcripts, and route member reports.</p></div>
-        <div class="feature-item"><b>ROLES & ENGAGEMENT</b><h3>Member participation</h3><p>Use self-assignable roles, reaction roles, role panels, giveaways, and engagement tools.</p></div>
+        <div class="feature-item"><b>TICKETS &amp; REPORTS</b><h3>Structured support</h3><p>Set up ticket panels, claim and manage tickets, save transcripts, and route member reports.</p></div>
+        <div class="feature-item"><b>ROLES &amp; ENGAGEMENT</b><h3>Member participation</h3><p>Use self-assignable roles, reaction roles, role panels, giveaways, and engagement tools.</p></div>
       </div>
     </article>
 
@@ -131,7 +137,7 @@
       <div class="feature-items">
         <div class="feature-item"><b>SERVER INSIGHT</b><h3>Quick information</h3><p>View server, member, role, channel, emoji, and user information with utility commands.</p></div>
         <div class="feature-item"><b>BACKUPS</b><h3>Save server configurations</h3><p>Create a server backup and restore a saved backup using its unique ID.</p></div>
-        <div class="feature-item"><b>LAST.FM & VOICE</b><h3>More ways to connect</h3><p>Last.fm integration and VoiceMaster setup add music-profile and voice-channel utilities.</p></div>
+        <div class="feature-item"><b>LAST.FM &amp; VOICE</b><h3>More ways to connect</h3><p>Last.fm integration and VoiceMaster setup add music-profile and voice-channel utilities.</p></div>
       </div>
     </article>
 
@@ -142,11 +148,21 @@
   </section>
 </main>
 
-<footer><div class="wrap foot">
-  <a class="brand" href="/"><img class="brand-mark" src="/assets/onyx-mark.png" alt="">ONYX</a>
-  <span>© <span data-year></span> ONYX. All rights reserved.</span>
-  <div><a href="/docs">Documentation</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/support">Support</a></div>
-</div></footer>
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="/"><img class="brand-mark" src="/assets/onyx-mark.png" alt="">ONYX</a>
+    <span>© <span data-year></span> ONYX. All rights reserved.</span>
+    <div>
+      <a href="/docs">Documentation</a>
+      <a href="/commands/">Commands</a>
+      <a href="/shop/">Prestige Shop</a>
+      <a href="/terms">Terms</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/support">Support</a>
+    </div>
+  </div>
+</footer>
 <script src="/assets/site.js"></script>
 </body>
 </html>
+
