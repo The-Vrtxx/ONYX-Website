@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#05090b">
+  <title>ONYX Control Center</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .control-wrap{width:min(1120px,calc(100% - 36px));margin:auto;padding:64px 0 100px}
+    .control-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+    .control-hero h1{font-size:clamp(42px,7vw,76px);margin:12px 0}
+    .control-lead{max-width:650px;color:var(--muted)}
+    .panel{margin-top:28px;padding:26px;border:1px solid var(--line);background:linear-gradient(145deg,#0d191c,#080e11)}
+    .panel h2{margin:0 0 10px}.muted{color:var(--muted)}
+    .login-panel,.denied-panel{text-align:center;padding:48px 24px}
+    .login-panel p,.denied-panel p{color:var(--muted);max-width:580px;margin:12px auto 24px}
+    .account{display:flex;align-items:center;gap:12px;padding:12px 15px;border:1px solid var(--line);background:var(--panel)}
+    .account img{width:42px;height:42px;border-radius:50%}.account small{display:block;color:var(--muted)}
+    .stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:24px}
+    .stat-card{padding:22px;border:1px solid var(--line);background:#0b1518}
+    .stat-card span{display:block;color:var(--muted);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+    .stat-card strong{display:block;color:var(--teal);font-size:32px;margin-top:8px}
+    .team-form{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+    .team-form input{flex:1;min-width:220px;background:#071012;border:1px solid var(--line);color:#fff;padding:13px}
+    .team-list{display:grid;gap:10px}
+    .team-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px;border:1px solid var(--line);background:#091316}
+    .team-row small{display:block;color:var(--muted);margin-top:4px}
+    .remove-button{border:1px solid #753f49;background:#261318;color:#ffb8c1;padding:10px 14px;cursor:pointer}
+    .message{margin-top:14px;color:var(--muted);font-size:13px}.message.error{color:#ff9999}
+    .status-line{margin-top:14px;color:var(--muted);font-size:12px}
+    [hidden]{display:none!important}
+    @media(max-width:650px){.stat-grid{grid-template-columns:1fr}.panel{padding:20px}}
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/"><img class="brand-mark" src="/assets/onyx-mark.png" alt="">ONYX</a>
+  <button class="menu-toggle" type="button" aria-label="Toggle navigation">☰</button>
+  <nav>
+    <a href="/">HOME</a><a href="/features">FEATURES</a>
+    <a href="/docs">DOCUMENTATION</a><a href="/commands/">COMMANDS</a>
+    <a href="/shop/">PRESTIGE SHOP</a><a class="active" href="/owner/">CONTROL CENTER</a>
+    <a href="/support">SUPPORT</a>
+  </nav>
+</header>
+
+<main class="control-wrap">
+  <section class="control-hero">
+    <div>
+      <div class="eyebrow">RESTRICTED ACCESS · ONYX DEVELOPMENT</div>
+      <h1>Control <em>Center.</em></h1>
+      <p class="control-lead">A private workspace for the ONYX owner and appointed developers. Access is verified against the same developer records used by the bot.</p>
+    </div>
+    <div class="account" id="account" hidden>
+      <img id="avatar" src="../assets/onyx-mark.png" alt="">
+      <div><strong id="username"></strong><small id="role-label">ONYX team</small></div>
+      <button class="button" id="logout" type="button">Sign out</button>
+    </div>
+  </section>
+
+  <section class="panel login-panel" id="login-panel">
+    <h2>Developer sign-in required</h2>
+    <p>Sign in with Discord. Only the configured ONYX owner and users appointed with the developer command can enter.</p>
+    <a class="button primary" href="https://api.onyxdiscord.com/auth/discord?next=%2Fowner%2F">Continue with Discord ↗</a>
+  </section>
+
+  <section class="panel denied-panel" id="denied-panel" hidden>
+    <h2>Access not granted</h2>
+    <p>This Discord account is not on the ONYX development team. Ask the ONYX owner to appoint your account with <strong>,developer add</strong>.</p>
+    <button class="button" id="denied-logout" type="button">Sign out</button>
+  </section>
+
+  <section id="portal" hidden>
+    <section class="panel">
+      <div class="eyebrow">SYSTEM OVERVIEW</div><h2>ONYX at a glance</h2>
+      <p class="muted">Live values from the ONYX shared database.</p>
+      <div class="stat-grid">
+        <div class="stat-card"><span>Servers</span><strong id="stat-servers">—</strong></div>
+        <div class="stat-card"><span>Combined members</span><strong id="stat-members">—</strong></div>
+        <div class="stat-card"><span>Public commands</span><strong id="stat-commands">—</strong></div>
+      </div>
+      <div class="status-line" id="updated-at">Loading system information…</div>
+    </section>
+
+    <section class="panel" id="team-panel" hidden>
+      <div class="eyebrow">OWNER ONLY</div><h2>Developer access</h2>
+      <p class="muted">Only the configured owner can appoint or remove ONYX developers. Changes use the same database as the bot's developer command.</p>
+      <form class="team-form" id="add-form">
+        <input id="new-user-id" name="user_id" inputmode="numeric" autocomplete="off" placeholder="Discord user ID" aria-label="Discord user ID" required>
+        <button class="button primary" type="submit">Add developer</button>
+      </form>
+      <div class="message" id="team-message" role="status"></div>
+      <div class="team-list" id="team-list"></div>
+    </section>
+
+    <section class="panel" id="developer-panel" hidden>
+      <div class="eyebrow">DEVELOPER ACCESS</div><h2>Developer workspace</h2>
+      <p class="muted">You have ONYX developer access. Developer appointment management and owner-only settings are reserved for the owner account.</p>
+    </section>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="/"><img class="brand-mark" src="/assets/onyx-mark.png" alt="">ONYX</a>
+    <span>© <span data-year></span> ONYX Development · Vrtx</span>
+    <div><a href="/features">Features</a><a href="/docs">Documentation</a><a href="/commands/">Commands</a><a href="/shop/">Prestige Shop</a><a href="/support">Support</a></div>
+  </div>
+</footer>
+<script src="../assets/site.js"></script>
+<script src="../assets/owner.js"></script>
+</body>
+</html>
