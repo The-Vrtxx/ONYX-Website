@@ -4,151 +4,365 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#05090b">
-  <meta name="description" content="ONYX — Discord server management, moderation, security and progression.">
-  <link rel="icon" type="image/png" href="/assets/onyx-mark.png">
-  <title>ONYX — Command your community</title>
-  <link rel="stylesheet" href="/assets/styles.css">
+  <meta name="description" content="Browse the live ONYX Discord bot command catalog, with syntax and descriptions.">
+  <title>Command Directory — ONYX</title>
+  <link rel="icon" href="../assets/onyx-mark.png">
+  <link rel="stylesheet" href="../assets/styles.css">
+
+  <style>
+    .command-tools{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:12px;margin:30px 0 16px}
+    .command-search,.command-select{width:100%;background:#0b1418;border:1px solid #24363c;color:#e8f1f2;border-radius:12px;padding:15px 16px;font:inherit;outline:none}
+    .command-search:focus,.command-select:focus{border-color:#36d6c4;box-shadow:0 0 0 3px #36d6c41c}
+    .command-filter-list{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 28px}
+    .filter-chip{background:#0b1418;color:#b8c8ca;border:1px solid #24363c;border-radius:999px;padding:8px 12px;cursor:pointer;font:inherit;font-size:.82rem}
+    .filter-chip span{color:#54dccc;margin-left:5px}
+    .filter-chip.active{background:#10302f;border-color:#36d6c4;color:#efffff}
+    .command-stats{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#a9b9bb;font-size:.9rem;margin:12px 0 32px}
+    .command-category{margin:36px 0 48px;scroll-margin-top:90px}
+    .category-heading{display:flex;justify-content:space-between;align-items:end;border-bottom:1px solid #203137;padding-bottom:13px;margin-bottom:14px}
+    .category-heading h2{margin:4px 0 0;font-size:1.55rem}
+    .category-count{color:#59dccc;font-size:.85rem;white-space:nowrap}
+    .command-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .command-entry{background:linear-gradient(145deg,#0d171b,#091014);border:1px solid #1c3036;border-radius:14px;padding:16px;min-width:0}
+    .command-entry-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .command-entry h3{font-size:1rem;margin:0;color:#e9f5f5;overflow-wrap:anywhere}
+    .command-entry p{color:#a8b8bb;font-size:.9rem;line-height:1.55;margin:12px 0 0}
+    .command-usage{display:block;color:#5ce0cf;background:#071012;border:1px solid #1b3438;border-radius:8px;padding:9px 10px;margin-top:12px;white-space:normal;overflow-wrap:anywhere;font-size:.83rem}
+    .copy-command{background:#102a2b;border:1px solid #28504d;color:#72e5d5;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:.78rem;flex-shrink:0}
+    .copy-command:hover{background:#17413e}
+    .empty-state{display:none;text-align:center;color:#a9b9bb;padding:42px 12px;border:1px dashed #294047;border-radius:14px}
+    .catalog-status{color:#a9b9bb;font-size:.9rem;margin:0 0 20px}
+    .catalog-retry{background:#102a2b;border:1px solid #28504d;color:#72e5d5;border-radius:8px;padding:9px 13px;cursor:pointer;font:inherit;margin-top:12px}
+    @media(max-width:760px){
+      .command-tools{grid-template-columns:1fr}
+      .command-list{grid-template-columns:1fr}
+      .command-stats{align-items:flex-start;flex-direction:column}
+    }
+  </style>
 </head>
 
 <body>
-
-<header class="topbar">
-  <a class="brand" href="/">
-    <img class="brand-mark" src="/assets/onyx-mark.png" alt="">
-    ONYX
-  </a>
-
-  <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
-
-  <nav>
-    <a class="active" href="/">HOME</a>
-    <a href="/features">FEATURES</a>
-    <a href="/docs">DOCUMENTATION</a>
-    <a href="/commands/">COMMANDS</a>
-    <a href="/shop/">PRESTIGE SHOP</a>
-    <a href="/support">SUPPORT</a>
-    <a href="/terms">TERMS</a>
-    <a href="/privacy">PRIVACY</a>
-    <a class="nav-cta" href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8" target="_blank" rel="noopener">AUTHORIZE ONYX ↗</a>
-  </nav>
-</header>
-
-<main>
-
-<section class="hero wrap">
-
-  <div class="eyebrow">● THE NEXT STANDARD IN SERVER MANAGEMENT</div>
-
-  <h1>Command your<br><em>community.</em></h1>
-
-  <p class="lead">
-    One powerful system for moderation, security, progression, and the tools that keep your Discord community moving.
-  </p>
-
-  <div class="actions">
-    <a class="button primary" href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8" target="_blank" rel="noopener">Authorize ONYX ↗</a>
-    <a class="button" href="/features">Explore features →</a>
-  </div>
-
-  <div class="hero-art">
-    <img src="/assets/onyx-banner.png" alt="ONYX Discord bot branding banner">
-  </div>
-
-  <div class="micro">MODERATION · SECURITY · GLOBAL PROGRESSION</div>
-
-</section>
-
-<section class="wrap section">
-
-  <div class="eyebrow">BUILT AS A SYSTEM</div>
-
-  <h2>Everything connected.<br><em>Nothing cluttered.</em></h2>
-
-  <div class="cards">
-
-    <a href="/features#moderation">
-      <b>01 / MODERATION</b>
-      <h3>Keep order.</h3>
-      <p>Practical tools to help staff manage conversations and community standards.</p>
-    </a>
-
-    <a href="/features#security">
-      <b>02 / SECURITY</b>
-      <h3>Stay protected.</h3>
-      <p>Configurable safeguards, audit visibility, and tools for responding to abuse.</p>
-    </a>
-
-    <a href="/features#progression">
-      <b>03 / PROGRESSION</b>
-      <h3>Reward activity.</h3>
-      <p>Global leveling, Prestige milestones, collectible cosmetics, and profile cards.</p>
-    </a>
-
-    <a href="/docs">
-      <b>04 / DOCUMENTATION</b>
-      <h3>Know every tool.</h3>
-      <p>Browse command syntax, setup steps, and practical guides for ONYX.</p>
-    </a>
-
-  </div>
-
-</section>
-
-<section class="statement">
-
-  <div class="wrap">
-
-    <div class="eyebrow">THE ONYX APPROACH</div>
-
-    <h2>Powerful tools.<br><em>Clear control.</em></h2>
-
-    <p>
-      Designed to give server owners and moderators useful capabilities without making everyday management feel complicated.
-    </p>
-
-  </div>
-
-</section>
-
-<section class="wrap section bottom-cta">
-
-  <div>
-    <div class="eyebrow">READY WHEN YOU ARE</div>
-    <h2>Build a better<br><em>server experience.</em></h2>
-  </div>
-
-  <a class="button primary" href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8" target="_blank" rel="noopener">Get ONYX ↗</a>
-
-</section>
-
-</main>
-
-<footer>
-
-  <div class="wrap foot">
-
+  <header class="topbar">
     <a class="brand" href="/">
       <img class="brand-mark" src="/assets/onyx-mark.png" alt="">
       ONYX
     </a>
 
-    <span>© <span data-year></span> ONYX Development · Vrtx</span>
+    <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
 
-    <div>
+    <nav>
+      <a href="/">Home</a>
       <a href="/features">Features</a>
       <a href="/docs">Documentation</a>
-      <a href="/commands/">Commands</a>
+      <a class="active" href="/commands/">Commands</a>
       <a href="/shop/">Prestige Shop</a>
+      <a href="/support">Support</a>
       <a href="/terms">Terms</a>
       <a href="/privacy">Privacy</a>
-      <a href="/support">Support</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <div class="command-hero">
+      <div class="eyebrow">ONYX / COMMAND DIRECTORY</div>
+      <h1>Every command.<br><em>One place.</em></h1>
+      <p class="lead">The complete public command list loaded directly from the running ONYX bot.</p>
+      <div class="command-note">
+        <b>Live command catalog</b> synced directly from ONYX. Default prefix: <code>,</code>.
+        Some commands require server permissions or staff access. Your server may use a customized prefix.
+      </div>
     </div>
 
-  </div>
+    <div class="command-tools">
+      <input
+        id="commandSearch"
+        class="command-search"
+        type="search"
+        placeholder="Search commands, usage, or descriptions…"
+        autocomplete="off"
+        aria-label="Search commands"
+      >
 
-</footer>
+      <select id="categorySelect" class="command-select" aria-label="Filter by category">
+        <option value="">Loading categories…</option>
+      </select>
+    </div>
 
-<script src="/assets/site.js"></script>
+    <div class="command-filter-list" id="filterChips" aria-label="Command categories"></div>
 
+    <div class="command-stats">
+      <span id="resultCount">Loading commands…</span>
+      <span>Tip: select <b>Copy</b> to copy a command's usage.</span>
+    </div>
+
+    <div id="commandSections"></div>
+    <div id="emptyState" class="empty-state" role="status">Loading the live command catalog…</div>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <a class="brand" href="/">
+        <img class="brand-mark" src="/assets/onyx-mark.png" alt="">
+        ONYX
+      </a>
+
+      <span>
+        © <span data-year></span> ONYX Development · Vrtx
+      </span>
+
+      <div>
+        <a href="/features">Features</a>
+        <a href="/docs">Documentation</a>
+        <a href="/commands/">Commands</a>
+        <a href="/shop/">Prestige Shop</a>
+        <a href="/support">Support</a>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // This is the public ONYX Website API endpoint.
+    const API_URL = "https://onyx-website-ai.onrender.com/api/commands";
+
+    let commands = [];
+    let categoryNames = [];
+    let activeCategory = "";
+
+    const searchInput = document.getElementById("commandSearch");
+    const categorySelect = document.getElementById("categorySelect");
+    const filterChips = document.getElementById("filterChips");
+    const sections = document.getElementById("commandSections");
+    const resultCount = document.getElementById("resultCount");
+    const emptyState = document.getElementById("emptyState");
+
+    // Escape API text before inserting it into HTML.
+    const esc = value => String(value ?? "").replace(/[&<>"']/g, character => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[character]));
+
+    function setCategory(value) {
+      activeCategory = value;
+      categorySelect.value = value;
+
+      filterChips.querySelectorAll(".filter-chip").forEach(button => {
+        button.classList.toggle("active", button.dataset.filter === value);
+      });
+
+      renderCommands();
+    }
+
+    function buildFilters() {
+      categorySelect.innerHTML =
+        '<option value="">All categories (' + categoryNames.length + ')</option>';
+
+      filterChips.innerHTML = "";
+
+      const counts = Object.fromEntries(
+        categoryNames.map(category => [
+          category,
+          commands.filter(command => command.category === category).length
+        ])
+      );
+
+      const allChip = document.createElement("button");
+      allChip.type = "button";
+      allChip.className = "filter-chip active";
+      allChip.dataset.filter = "";
+      allChip.innerHTML = 'All commands <span>' + commands.length + '</span>';
+      allChip.addEventListener("click", () => setCategory(""));
+      filterChips.append(allChip);
+
+      categoryNames.forEach(category => {
+        const count = counts[category];
+
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category + " (" + count + ")";
+        categorySelect.append(option);
+
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "filter-chip";
+        chip.dataset.filter = category;
+        chip.innerHTML = esc(category) + " <span>" + count + "</span>";
+        chip.addEventListener("click", () => setCategory(category));
+        filterChips.append(chip);
+      });
+    }
+
+    function renderCommands() {
+      const query = searchInput.value.trim().toLowerCase();
+      let shown = 0;
+
+      sections.innerHTML = "";
+
+      categoryNames.forEach(category => {
+        if (activeCategory && activeCategory !== category) {
+          return;
+        }
+
+        const matches = commands.filter(command => {
+          if (command.category !== category) {
+            return false;
+          }
+
+          const searchable = [
+            command.name,
+            command.usage,
+            command.description,
+            command.cog,
+            ...(Array.isArray(command.aliases) ? command.aliases : [])
+          ].join(" ").toLowerCase();
+
+          return !query || searchable.includes(query);
+        });
+
+        if (!matches.length) {
+          return;
+        }
+
+        shown += matches.length;
+
+        const section = document.createElement("section");
+        section.className = "command-category";
+        section.id = "cat-" + category.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+        section.innerHTML =
+          '<div class="category-heading">' +
+            '<div><span class="eyebrow">COMMAND CATEGORY</span>' +
+            '<h2>' + esc(category) + '</h2></div>' +
+            '<span class="category-count">' + matches.length + ' command' +
+            (matches.length === 1 ? "" : "s") + '</span>' +
+          '</div><div class="command-list"></div>';
+
+        const list = section.querySelector(".command-list");
+
+        matches.forEach(command => {
+          const card = document.createElement("article");
+          card.className = "command-entry";
+
+          card.innerHTML =
+            '<div class="command-entry-top">' +
+              '<h3>' + esc(command.name) + '</h3>' +
+              '<button class="copy-command" type="button">Copy</button>' +
+            '</div>' +
+            '<code class="command-usage">' + esc(command.usage) + '</code>' +
+            '<p>' + esc(command.description || "No description available.") + '</p>';
+
+          card.querySelector(".copy-command").addEventListener("click", async event => {
+            const button = event.currentTarget;
+
+            try {
+              await navigator.clipboard.writeText(command.usage || "");
+              button.textContent = "Copied!";
+            } catch (error) {
+              button.textContent = "Select text";
+            }
+
+            window.setTimeout(() => {
+              button.textContent = "Copy";
+            }, 1200);
+          });
+
+          list.append(card);
+        });
+
+        sections.append(section);
+      });
+
+      resultCount.textContent =
+        "Showing " + shown + " of " + commands.length + " commands";
+
+      emptyState.textContent = commands.length
+        ? "No commands match your search."
+        : "The live command catalog is currently empty.";
+
+      emptyState.style.display = shown ? "none" : "block";
+    }
+
+    async function loadCommands() {
+      emptyState.textContent = "Loading the live command catalog…";
+      emptyState.style.display = "block";
+      resultCount.textContent = "Loading commands…";
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "GET",
+          headers: {
+            "Accept": "application/json"
+          },
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          throw new Error("API returned HTTP " + response.status);
+        }
+
+        const data = await response.json();
+
+        if (!data || !Array.isArray(data.commands)) {
+          throw new Error("The API response did not contain a commands array.");
+        }
+
+        commands = data.commands.map(command => ({
+          name: String(command.name ?? command.command_name ?? ""),
+          usage: String(command.usage ?? ""),
+          category: String(command.category ?? "Other"),
+          description: String(command.description ?? ""),
+          aliases: Array.isArray(command.aliases)
+            ? command.aliases
+            : (typeof command.aliases === "string"
+              ? (() => {
+                  try {
+                    const parsed = JSON.parse(command.aliases);
+                    return Array.isArray(parsed) ? parsed : [];
+                  } catch {
+                    return [];
+                  }
+                })()
+              : []),
+          cog: String(command.cog ?? command.cog_name ?? "")
+        })).filter(command => command.name);
+
+        categoryNames = [
+          ...new Set(commands.map(command => command.category || "Other"))
+        ].sort((a, b) => a.localeCompare(b));
+
+        buildFilters();
+        renderCommands();
+      } catch (error) {
+        console.error("Unable to load ONYX commands:", error);
+
+        commands = [];
+        categoryNames = [];
+        sections.innerHTML = "";
+        filterChips.innerHTML = "";
+        categorySelect.innerHTML = '<option value="">Categories unavailable</option>';
+        resultCount.textContent = "Command catalog unavailable";
+        emptyState.innerHTML =
+          'Could not load commands from ONYX. Check that the API is online and allows requests from this website.' +
+          '<br><button class="catalog-retry" id="retryCommands" type="button">Try again</button>';
+        emptyState.style.display = "block";
+
+        document.getElementById("retryCommands").addEventListener("click", loadCommands);
+      }
+    }
+
+    searchInput.addEventListener("input", renderCommands);
+
+    categorySelect.addEventListener("change", () => {
+      setCategory(categorySelect.value);
+    });
+
+    loadCommands();
+  </script>
+
+  <script src="../assets/site.js"></script>
 </body>
 </html>
