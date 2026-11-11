@@ -4,134 +4,595 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#05090b">
-<title>Server Dashboard | ONYX</title>
+<title>ONYX | Server Control Center</title>
 <link rel="stylesheet" href="../assets/styles.css">
+
 <style>
-.dashboard-wrap{width:min(1160px,calc(100% - 36px));margin:auto;padding:58px 0 100px}
+/* Existing dashboard */
+.dashboard-wrap{width:min(1200px,calc(100% - 36px));margin:auto;padding:48px 0 100px}
 .dashboard-heading{display:flex;justify-content:space-between;align-items:center;gap:25px;flex-wrap:wrap}
 .dashboard-heading h1{font-size:clamp(42px,7vw,72px);margin:12px 0}
-.dashboard-description,.muted{color:var(--muted);max-width:680px}
+.dashboard-description,.muted{color:var(--muted);max-width:720px}
 .account{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);background:var(--panel);border-radius:4px}
-.account img{width:40px;height:40px;border-radius:50%}.account small{display:block;color:var(--muted)}
-.account button{cursor:pointer}.dashboard-section{margin-top:42px}
+.account img{width:40px;height:40px;border-radius:50%}
+.account small{display:block;color:var(--muted)}
+.account button{cursor:pointer}
+.dashboard-section{margin-top:35px}
 .section-heading{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:18px}
-.section-heading h2{margin:0;font-size:24px}.server-count{color:var(--muted);font:11px 'DM Mono',monospace}
+.section-heading h2{margin:0;font-size:24px}
+.server-count{color:var(--muted);font:11px 'DM Mono',monospace}
 .server-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .server-card{padding:20px;border:1px solid var(--line);background:linear-gradient(145deg,#0d191c,#080e11);border-radius:4px;display:flex;flex-direction:column;gap:18px;min-height:175px}
-.server-top{display:flex;align-items:center;gap:13px}.server-icon{width:50px;height:50px;border-radius:12px;object-fit:cover;background:#142528;display:flex;align-items:center;justify-content:center;color:var(--teal);font-weight:800;font-size:20px}
-.server-name{font-size:16px;font-weight:800;overflow-wrap:anywhere}.server-permission{color:var(--muted);font-size:11px;margin-top:4px}
+.server-top{display:flex;align-items:center;gap:13px}
+.server-icon{width:50px;height:50px;border-radius:12px;object-fit:cover;background:#142528;display:flex;align-items:center;justify-content:center;color:var(--teal);font-weight:800;font-size:20px}
+.server-name{font-size:16px;font-weight:800;overflow-wrap:anywhere}
+.server-permission{color:var(--muted);font-size:11px;margin-top:4px}
 .server-card button,.save-button{cursor:pointer;border:1px solid #36565a;background:var(--teal);color:#031011;padding:12px;border-radius:3px;font-size:11px;font-weight:800;text-transform:uppercase}
-.server-card button{margin-top:auto;width:100%}.server-card button:hover,.save-button:hover{background:var(--teal2)}
-.dashboard-message{padding:22px;border:1px solid var(--line);background:var(--panel);color:var(--muted);text-align:center}.dashboard-message.error{color:#ff9999}
-.login-panel{text-align:center;padding:42px 24px;margin:36px 0;border:1px solid var(--line);background:var(--panel)}.login-panel p{color:var(--muted)}
-.settings-panel{display:none;margin-top:32px}.settings-panel.visible{display:block}
+.server-card button{margin-top:auto;width:100%}
+.server-card button:hover,.save-button:hover{background:var(--teal2)}
+.dashboard-message{padding:22px;border:1px solid var(--line);background:var(--panel);color:var(--muted);text-align:center}
+.dashboard-message.error{color:#ff9999}
+.login-panel{text-align:center;padding:42px 24px;margin:36px 0;border:1px solid var(--line);background:var(--panel)}
+.login-panel p{color:var(--muted)}
+.settings-panel{display:none;margin-top:32px}
+.settings-panel.visible{display:block}
 .settings-header{padding:22px;border:1px solid #23605c;background:#0b1b1d;margin-bottom:18px}
-.settings-header h2{margin:6px 0}.settings-header p{color:var(--muted);margin-bottom:0;font-size:13px}
+.settings-header h2{margin:6px 0}
+.settings-header p{color:var(--muted);margin-bottom:0;font-size:13px}
 .settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .settings-card{padding:22px;border:1px solid var(--line);background:var(--panel);min-width:0}
-.settings-card h3{margin:0 0 16px;font-size:17px}.field{display:flex;flex-direction:column;gap:7px;margin:13px 0}
+.settings-card h3{margin:0 0 16px;font-size:17px}
+.field{display:flex;flex-direction:column;gap:7px;margin:13px 0}
 .field label,.filter-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .field input,.field textarea,.field select,.filter-row input,.filter-row select{width:100%;box-sizing:border-box;padding:11px;background:#071013;border:1px solid var(--line);color:#eaf2f2;border-radius:3px;font:13px inherit}
-.field textarea{min-height:92px;resize:vertical}.field small{color:var(--muted);font-size:11px}
+.field textarea{min-height:92px;resize:vertical}
+.field small{color:var(--muted);font-size:11px}
 .toggle-line{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
 .toggle-line input{width:18px;height:18px;accent-color:var(--teal)}
-.filter-card{grid-column:1/-1}.filter-block{padding:16px 0;border-top:1px solid var(--line)}.filter-block:first-of-type{border-top:0}
-.filter-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.filter-head strong{font-size:14px}
+.filter-card{grid-column:1/-1}
+.filter-block{padding:16px 0;border-top:1px solid var(--line)}
+.filter-block:first-of-type{border-top:0}
+.filter-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.filter-head strong{font-size:14px}
 .filter-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
 .filter-row label{display:flex;flex-direction:column;gap:6px;font-size:10px;color:var(--muted);text-transform:uppercase}
 .filter-row input,.filter-row select{font-size:12px;min-width:0}
-.save-row{display:flex;align-items:center;gap:14px;margin-top:18px;flex-wrap:wrap}.save-status{font-size:12px;color:var(--muted)}.save-status.error{color:#ff9999}.save-status.success{color:#80e0bd}
+.save-row{display:flex;align-items:center;gap:14px;margin-top:18px;flex-wrap:wrap}
+.save-status{font-size:12px;color:var(--muted)}
+.save-status.error{color:#ff9999}
+.save-status.success{color:#80e0bd}
 .note{font-size:11px;color:var(--muted);line-height:1.6}
-@media(max-width:850px){.server-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.settings-grid{grid-template-columns:1fr}}
-@media(max-width:560px){.server-grid{grid-template-columns:1fr}.filter-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Unified navigation */
+.control-nav{display:none;margin:30px 0 18px;border:1px solid var(--line);background:#081215;padding:8px;gap:7px;flex-wrap:wrap}
+.control-nav.visible{display:flex}
+.control-nav button{background:transparent;color:#c4d0d0;border:1px solid transparent;padding:12px 15px;cursor:pointer;font-weight:800;font-size:11px;text-transform:uppercase}
+.control-nav button:hover{border-color:var(--line)}
+.control-nav button.active{background:#123034;border-color:var(--teal);color:#eaffff}
+.control-section{display:none}
+.control-section.active{display:block}
+.server-banner{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;padding:20px;border:1px solid #23605c;background:#0b1b1d;margin-top:25px}
+.server-banner h2{margin:5px 0}
+.server-banner p{margin:0;color:var(--muted);font-size:12px}
+.change-server{background:transparent;color:#eaf2f2;border:1px solid var(--line);padding:10px 14px;cursor:pointer;font-weight:800;font-size:11px;text-transform:uppercase}
+
+/* Management Center */
+.mgmt-panel{background:var(--panel);border:1px solid var(--line);padding:20px;margin-top:18px;min-width:0}
+.mgmt-panel h2,.mgmt-panel h3{margin-top:0}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar select,.toolbar input{background:#071013;color:#eaf2f2;border:1px solid var(--line);padding:11px;border-radius:3px;min-width:0}
+.toolbar select,.toolbar input{min-width:190px}
+.btn{cursor:pointer;border:1px solid #36565a;background:var(--teal);color:#031011;padding:11px 15px;border-radius:3px;font-weight:800;font-size:11px;text-transform:uppercase}
+.btn.secondary{background:transparent;color:#dce9e9;border-color:var(--line)}
+.btn.danger{background:#451f27;color:#ffdadd;border-color:#71323e}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:25px 0 5px}
+.tab{background:#0a1417;color:#c4d0d0;border:1px solid var(--line);padding:12px 15px;cursor:pointer;font-weight:700}
+.tab.active{background:#123034;border-color:var(--teal);color:#eaffff}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.metric{padding:18px;background:#081215;border:1px solid var(--line)}
+.metric small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.metric strong{display:block;font-size:29px;margin-top:8px}
+.status{display:inline-flex;align-items:center;gap:7px;font-size:11px;text-transform:uppercase;font-weight:800}
+.status:before{content:"";width:8px;height:8px;border-radius:50%;background:#d6a24e}
+.status.online:before{background:#54d6a5}
+.rows{display:grid;gap:9px}
+.row-card{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:13px;background:#081215;border:1px solid var(--line)}
+.row-card p{margin:5px 0 0;color:var(--muted);font-size:12px}
+.row-card strong{overflow-wrap:anywhere}
+.mgmt-field{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.mgmt-field label{font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800}
+.mgmt-field input,.mgmt-field select{width:100%;box-sizing:border-box;background:#071013;color:#eaf2f2;border:1px solid var(--line);padding:11px;border-radius:3px}
+.form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.notice{padding:12px 14px;background:#0d1b1e;border-left:3px solid var(--teal);color:var(--muted);font-size:12px;line-height:1.6}
+.empty{padding:20px;text-align:center;color:var(--muted);border:1px dashed var(--line)}
+.status-line{font-size:12px;color:var(--muted);min-height:18px}
+.status-line.error{color:#ff9b9b}
+.status-line.success{color:#80e0bd}
+.bar-list{display:grid;gap:10px}
+.bar-item{display:grid;grid-template-columns:110px 1fr 45px;gap:10px;align-items:center;font-size:12px}
+.bar-track{height:9px;background:#1a2a2e}
+.bar-fill{height:9px;background:var(--teal);width:0}
+.case-detail{padding:15px;background:#081215;border:1px solid var(--line);margin-top:10px}
+.server-select{width:100%;max-width:520px}
+
+@media(max-width:850px){
+ .server-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .settings-grid{grid-template-columns:1fr}
+ .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .form-grid,.split{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+ .server-grid{grid-template-columns:1fr}
+ .filter-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .metrics{grid-template-columns:1fr 1fr}
+ .metric strong{font-size:23px}
+ .bar-item{grid-template-columns:80px 1fr 35px}
+}
 </style>
 </head>
+
 <body>
 <header class="topbar">
-  <a class="brand" href="/"><img class="brand-mark" src="/assets/onyx-mark.png" alt=""> ONYX</a>
+  <a class="brand" href="/">
+    <img class="brand-mark" src="/assets/onyx-mark.png" alt=""> ONYX
+  </a>
   <button class="menu-toggle" aria-label="Toggle navigation">☰</button>
   <nav>
-    <a href="/">Home</a><a href="/features">Features</a><a href="/docs">Documentation</a>
-    <a href="/commands/">Commands</a><a href="/shop/">Prestige Shop</a>
-    <a class="active" href="/dashboard/">Dashboard</a><a href="/support">Support</a>
+    <a href="/">Home</a>
+    <a href="/features">Features</a>
+    <a href="/docs">Documentation</a>
+    <a href="/commands/">Commands</a>
+    <a href="/shop/">Prestige Shop</a>
+    <a class="active" href="/dashboard/">Dashboard</a>
+    <a href="/support">Support</a>
   </nav>
 </header>
 
 <main class="dashboard-wrap">
+
   <section class="dashboard-heading">
     <div>
       <div class="eyebrow">ONYX CONTROL CENTER</div>
       <h1>Server <em>Dashboard.</em></h1>
-      <p class="dashboard-description">Manage ONYX settings for Discord servers where you have Server Owner, Administrator, or Manage Server permission.</p>
+      <p class="dashboard-description">
+        One place to configure ONYX, manage moderation, review server activity,
+        and control roles.
+      </p>
     </div>
+
     <div class="account" id="account" hidden>
-      <img id="avatar" alt="Discord avatar"><div><strong id="username"></strong><small>Discord account</small></div>
+      <img id="avatar" alt="Discord avatar">
+      <div>
+        <strong id="username"></strong>
+        <small>Discord account</small>
+      </div>
       <button class="button" id="logout">Sign out</button>
     </div>
   </section>
 
   <section class="login-panel" id="login-panel">
     <h2>Connect your Discord account</h2>
-    <p>Sign in to see the servers where ONYX is installed and you have permission to manage settings.</p>
-    <a class="button primary" href="https://api.onyxdiscord.com/auth/discord?next=%2Fdashboard%2F">Continue with Discord ↗</a>
+    <p>
+      Sign in to see the servers where ONYX is installed and where you have
+      permission to manage settings.
+    </p>
+    <a class="button primary" href="https://api.onyxdiscord.com/auth/discord?next=%2Fdashboard%2F">
+      Continue with Discord ↗
+    </a>
   </section>
 
   <section id="dashboard-content" hidden>
-    <section class="dashboard-section">
-      <div class="section-heading"><h2>Select a Server</h2><span class="server-count" id="server-count">LOADING SERVERS</span></div>
-      <div id="server-grid" class="server-grid"><div class="dashboard-message">Loading your Discord servers...</div></div>
+
+    <!-- Server selection -->
+    <section class="dashboard-section" id="server-selection">
+      <div class="section-heading">
+        <h2>Select a Server</h2>
+        <span class="server-count" id="server-count">LOADING SERVERS</span>
+      </div>
+      <div id="server-grid" class="server-grid">
+        <div class="dashboard-message">Loading your Discord servers...</div>
+      </div>
     </section>
 
-    <section class="settings-panel" id="settings-panel">
-      <div class="settings-header">
-        <div class="eyebrow">SERVER CONFIGURATION</div>
+    <!-- Selected server banner -->
+    <section class="server-banner" id="server-banner" hidden>
+      <div>
+        <div class="eyebrow">CURRENT SERVER</div>
         <h2 id="selected-name">Select a server</h2>
-        <p id="selected-permission">Settings are saved directly to the ONYX database.</p>
+        <p id="selected-permission">Server settings and management</p>
+      </div>
+      <button class="change-server" id="change-server">Change Server</button>
+    </section>
+
+    <!-- Unified navigation -->
+    <nav class="control-nav" id="control-nav" aria-label="Server dashboard sections">
+      <button class="active" data-section="home">Overview</button>
+      <button data-section="settings">Server Settings</button>
+      <button data-section="overview">Server Health</button>
+      <button data-section="moderation">Moderation</button>
+      <button data-section="automod">AutoMod Analytics</button>
+      <button data-section="roles">Role Management</button>
+      <button data-section="audit">Audit Log</button>
+    </nav>
+
+    <!-- HOME / INTRO -->
+    <section class="control-section active" id="section-home">
+      <div class="settings-header">
+        <div class="eyebrow">SERVER CONTROL CENTER</div>
+        <h2>Welcome to ONYX.</h2>
+        <p>
+          Choose a section above to configure your server or review its activity.
+          All sections use the same selected Discord server.
+        </p>
       </div>
 
       <div class="settings-grid">
-        <section class="settings-card">
-          <h3>Channels</h3>
-          <div class="field"><label for="log-channel">Logging channel ID</label><input id="log-channel" inputmode="numeric" placeholder="Paste channel ID"><small>Used by ONYX moderation and server event logs. Leave blank to disable log delivery.</small></div>
-          <div class="field"><label for="welcome-channel">Welcome / goodbye channel ID</label><input id="welcome-channel" inputmode="numeric" placeholder="Paste channel ID"><small>The existing welcome cog uses this channel for both messages.</small></div>
-          <div class="field"><label for="levelup-channel">Level-up announcement channel ID</label><input id="levelup-channel" inputmode="numeric" placeholder="Paste channel ID"><small>Leave blank to announce in the channel where the member earned XP.</small></div>
-          <p class="note">To copy a channel ID in Discord: enable Developer Mode in Advanced settings, then right-click or long-press the channel and choose Copy Channel ID.</p>
-        </section>
-
-        <section class="settings-card">
-          <h3>Welcome & Goodbye</h3>
-          <div class="field"><label for="welcome-message">Welcome message</label><textarea id="welcome-message" maxlength="1500"></textarea><small>Placeholders: {mention}, {user}, {server}, {count}</small></div>
-          <div class="field"><label for="goodbye-message">Goodbye message</label><textarea id="goodbye-message" maxlength="1500"></textarea><small>Placeholders: {user}, {server}</small></div>
-        </section>
-
-        <section class="settings-card">
-          <h3>Leveling</h3>
-          <label class="toggle-line"><span>Enable XP earning in this server</span><input id="xp-enabled" type="checkbox"></label>
-          <label class="toggle-line"><span>Enable level-up announcements</span><input id="announcements-enabled" type="checkbox"></label>
-          <p class="note">ONYX progression is global. Disabling XP stops members in this server from earning XP here; it does not erase existing levels or lifetime XP. Disabling announcements does not stop XP earning.</p>
-        </section>
-
-        <section class="settings-card filter-card">
-          <h3>AutoMod Filters</h3>
-          <p class="note">These controls update the same filter settings used by ONYX's existing filter cog. Timeout and jail punishments require the matching Discord permissions and configured jail system.</p>
-          <div id="filter-list"></div>
-        </section>
-      </div>
-
-      <div class="save-row">
-        <button class="save-button" id="save-settings">Save Server Settings</button>
-        <span class="save-status" id="save-status" aria-live="polite"></span>
+        <article class="settings-card">
+          <h3>Server Settings</h3>
+          <p class="note">Configure logging, welcome messages, leveling, and AutoMod filters.</p>
+          <button class="btn" data-go-section="settings">Open Settings</button>
+        </article>
+        <article class="settings-card">
+          <h3>Server Health</h3>
+          <p class="note">View server statistics, ONYX status, and recent moderation activity.</p>
+          <button class="btn" data-go-section="overview">View Overview</button>
+        </article>
+        <article class="settings-card">
+          <h3>Moderation</h3>
+          <p class="note">Review warnings, bans, kicks, timeouts, and recorded moderation cases.</p>
+          <button class="btn" data-go-section="moderation">Open Moderation</button>
+        </article>
+        <article class="settings-card">
+          <h3>AutoMod Analytics</h3>
+          <p class="note">Review filter activity, punishment breakdowns, and recent triggers.</p>
+          <button class="btn" data-go-section="automod">View Analytics</button>
+        </article>
+        <article class="settings-card">
+          <h3>Role Management</h3>
+          <p class="note">Configure autoroles, self-assignable roles, level rewards, and reaction roles.</p>
+          <button class="btn" data-go-section="roles">Manage Roles</button>
+        </article>
+        <article class="settings-card">
+          <h3>Audit Log</h3>
+          <p class="note">Review captured member, role, channel, message, and voice events.</p>
+          <button class="btn" data-go-section="audit">View Audit Log</button>
+        </article>
       </div>
     </section>
+
+    <!-- EXISTING SERVER SETTINGS -->
+    <section class="control-section" id="section-settings">
+      <section class="settings-panel visible" id="settings-panel">
+        <div class="settings-header">
+          <div class="eyebrow">SERVER CONFIGURATION</div>
+          <h2>Server Settings</h2>
+          <p>Settings are saved directly to the ONYX database.</p>
+        </div>
+
+        <div class="settings-grid">
+          <section class="settings-card">
+            <h3>Channels</h3>
+            <div class="field">
+              <label for="log-channel">Logging channel ID</label>
+              <input id="log-channel" inputmode="numeric" placeholder="Paste channel ID">
+              <small>Used by ONYX moderation and server event logs. Leave blank to disable log delivery.</small>
+            </div>
+            <div class="field">
+              <label for="welcome-channel">Welcome / goodbye channel ID</label>
+              <input id="welcome-channel" inputmode="numeric" placeholder="Paste channel ID">
+              <small>The existing welcome cog uses this channel for both messages.</small>
+            </div>
+            <div class="field">
+              <label for="levelup-channel">Level-up announcement channel ID</label>
+              <input id="levelup-channel" inputmode="numeric" placeholder="Paste channel ID">
+              <small>Leave blank to announce in the channel where the member earned XP.</small>
+            </div>
+            <p class="note">
+              To copy a channel ID in Discord: enable Developer Mode in Advanced
+              settings, then right-click or long-press the channel and choose
+              Copy Channel ID.
+            </p>
+          </section>
+
+          <section class="settings-card">
+            <h3>Welcome & Goodbye</h3>
+            <div class="field">
+              <label for="welcome-message">Welcome message</label>
+              <textarea id="welcome-message" maxlength="1500"></textarea>
+              <small>Placeholders: {mention}, {user}, {server}, {count}</small>
+            </div>
+            <div class="field">
+              <label for="goodbye-message">Goodbye message</label>
+              <textarea id="goodbye-message" maxlength="1500"></textarea>
+              <small>Placeholders: {user}, {server}</small>
+            </div>
+          </section>
+
+          <section class="settings-card">
+            <h3>Leveling</h3>
+            <label class="toggle-line">
+              <span>Enable XP earning in this server</span>
+              <input id="xp-enabled" type="checkbox">
+            </label>
+            <label class="toggle-line">
+              <span>Enable level-up announcements</span>
+              <input id="announcements-enabled" type="checkbox">
+            </label>
+            <p class="note">
+              ONYX progression is global. Disabling XP stops members in this
+              server from earning XP here; it does not erase existing levels
+              or lifetime XP. Disabling announcements does not stop XP earning.
+            </p>
+          </section>
+
+          <section class="settings-card filter-card">
+            <h3>AutoMod Filters</h3>
+            <p class="note">
+              These controls update the same filter settings used by ONYX's
+              existing filter cog. Timeout and jail punishments require the
+              matching Discord permissions and configured jail system.
+            </p>
+            <div id="filter-list"></div>
+          </section>
+        </div>
+
+        <div class="save-row">
+          <button class="save-button" id="save-settings">Save Server Settings</button>
+          <span class="save-status" id="save-status" aria-live="polite"></span>
+        </div>
+      </section>
+    </section>
+
+    <!-- SERVER HEALTH -->
+    <section class="control-section" id="section-overview">
+      <div class="metrics" id="metrics">
+        <div class="metric"><small>Server members</small><strong>—</strong></div>
+        <div class="metric"><small>Channels</small><strong>—</strong></div>
+        <div class="metric"><small>Moderation cases · 30d</small><strong>—</strong></div>
+        <div class="metric"><small>AutoMod catches · 7d</small><strong>—</strong></div>
+      </div>
+
+      <section class="mgmt-panel">
+        <div class="toolbar">
+          <h2 style="margin:0">Server health</h2>
+          <span id="bot-status" class="status">Checking ONYX…</span>
+          <span id="last-seen" class="muted"></span>
+        </div>
+        <p id="server-summary" class="muted"></p>
+      </section>
+
+      <section class="mgmt-panel">
+        <h2>Recent moderation</h2>
+        <div id="overview-cases" class="rows">
+          <div class="empty">Loading…</div>
+        </div>
+      </section>
+    </section>
+
+    <!-- MODERATION -->
+    <section class="control-section" id="section-moderation">
+      <section class="mgmt-panel">
+        <div class="toolbar">
+          <h2 style="margin:0">Moderation history</h2>
+          <input id="member-search" placeholder="Filter by member ID (optional)" inputmode="numeric">
+          <button id="load-moderation" class="btn">Search</button>
+        </div>
+        <p class="muted">
+          Includes recorded warnings, bans, kicks, and timeouts from ONYX's
+          moderation database.
+        </p>
+        <div id="moderation-list" class="rows">
+          <div class="empty">Choose a server to load history.</div>
+        </div>
+        <div id="case-detail"></div>
+      </section>
+    </section>
+
+    <!-- AUTOMOD ANALYTICS -->
+    <section class="control-section" id="section-automod">
+      <section class="mgmt-panel">
+        <div class="toolbar">
+          <h2 style="margin:0">AutoMod analytics</h2>
+          <select id="analytics-days">
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+          <button id="load-analytics" class="btn">Refresh</button>
+        </div>
+
+        <div class="metrics" id="automod-metrics" style="margin:16px 0">
+          <div class="metric"><small>Total triggers</small><strong>—</strong></div>
+          <div class="metric"><small>Successful actions</small><strong>—</strong></div>
+          <div class="metric"><small>Unsuccessful actions</small><strong>—</strong></div>
+          <div class="metric"><small>Reporting window</small><strong>7d</strong></div>
+        </div>
+
+        <div class="split">
+          <div>
+            <h3>By filter</h3>
+            <div id="filter-breakdown" class="bar-list"></div>
+          </div>
+          <div>
+            <h3>By punishment</h3>
+            <div id="punishment-breakdown" class="bar-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mgmt-panel">
+        <h2>Recent AutoMod activity</h2>
+        <div id="automod-recent" class="rows"></div>
+      </section>
+
+      <p class="notice">
+        AutoMod analytics begin accumulating after the updated ONYX bot code
+        is deployed. The dashboard stores filter type and action result,
+        not message content.
+      </p>
+    </section>
+
+    <!-- ROLE MANAGEMENT -->
+    <section class="control-section" id="section-roles">
+      <section class="mgmt-panel">
+        <div class="toolbar">
+          <h2 style="margin:0">Role configuration</h2>
+          <button id="refresh-roles" class="btn secondary">Refresh roles</button>
+        </div>
+
+        <p class="notice">
+          Role edits require Server Owner, Administrator, or Manage Roles
+          permission. ONYX can only manage roles below its highest role.
+          New role metadata syncs when ONYX is online.
+        </p>
+
+        <div class="form-grid">
+          <div class="mgmt-field">
+            <label for="role-select">Discord role</label>
+            <select id="role-select"><option value="">Loading roles…</option></select>
+          </div>
+          <div class="mgmt-field">
+            <label>Automatic join roles</label>
+            <button id="autorole-add" class="btn">Add selected role</button>
+          </div>
+          <div class="mgmt-field">
+            <label>Self-assignable roles</label>
+            <button id="selfrole-add" class="btn">Add selected role</button>
+          </div>
+        </div>
+
+        <div class="split">
+          <div>
+            <h3>Automatic join roles</h3>
+            <div id="autorole-list" class="rows"></div>
+          </div>
+          <div>
+            <h3>Self-assignable roles</h3>
+            <div id="selfrole-list" class="rows"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mgmt-panel">
+        <h2>Level rewards</h2>
+        <div class="form-grid">
+          <div class="mgmt-field">
+            <label for="reward-level">Level</label>
+            <input id="reward-level" type="number" min="1" max="10000" placeholder="e.g. 10">
+          </div>
+          <div class="mgmt-field">
+            <label>Reward role</label>
+            <select id="reward-role" class="role-options"></select>
+          </div>
+          <div class="mgmt-field">
+            <label>&nbsp;</label>
+            <button id="reward-save" class="btn">Save level reward</button>
+          </div>
+        </div>
+        <div id="reward-list" class="rows"></div>
+      </section>
+
+      <section class="mgmt-panel">
+        <h2>Reaction roles</h2>
+        <p class="muted">
+          Connect an emoji on an existing message to a role. Add the emoji
+          reaction to the message in Discord first; ONYX will process
+          members' reactions using this mapping.
+        </p>
+
+        <div class="form-grid">
+          <div class="mgmt-field">
+            <label for="reaction-channel">Channel ID</label>
+            <input id="reaction-channel" inputmode="numeric" placeholder="Channel ID">
+          </div>
+          <div class="mgmt-field">
+            <label for="reaction-message">Message ID</label>
+            <input id="reaction-message" inputmode="numeric" placeholder="Message ID">
+          </div>
+          <div class="mgmt-field">
+            <label for="reaction-emoji">Emoji</label>
+            <input id="reaction-emoji" placeholder="Emoji or custom emoji syntax">
+          </div>
+          <div class="mgmt-field">
+            <label for="reaction-role">Role</label>
+            <select id="reaction-role" class="role-options"></select>
+          </div>
+          <div class="mgmt-field">
+            <label>&nbsp;</label>
+            <button id="reaction-save" class="btn">Save reaction role</button>
+          </div>
+        </div>
+
+        <div id="reaction-list" class="rows"></div>
+      </section>
+
+      <p id="roles-status" class="status-line" aria-live="polite"></p>
+    </section>
+
+    <!-- AUDIT LOG -->
+    <section class="control-section" id="section-audit">
+      <section class="mgmt-panel">
+        <div class="toolbar">
+          <h2 style="margin:0">Server activity</h2>
+          <select id="audit-filter">
+            <option value="">All events</option>
+            <option value="member_join">Member joined</option>
+            <option value="member_leave">Member left</option>
+            <option value="member_ban">Member banned</option>
+            <option value="member_unban">Member unbanned</option>
+            <option value="role_create">Role created</option>
+            <option value="role_delete">Role deleted</option>
+            <option value="role_update">Role updated</option>
+            <option value="channel_create">Channel created</option>
+            <option value="channel_delete">Channel deleted</option>
+            <option value="channel_update">Channel updated</option>
+            <option value="message_delete">Message deleted</option>
+            <option value="message_edit">Message edited</option>
+            <option value="voice_join">Voice joined</option>
+            <option value="voice_leave">Voice left</option>
+            <option value="voice_move">Voice moved</option>
+          </select>
+          <button id="load-audit" class="btn">Refresh</button>
+        </div>
+
+        <div id="audit-list" class="rows">
+          <div class="empty">Loading activity…</div>
+        </div>
+      </section>
+
+      <p class="notice">
+        The viewer shows events captured while the ONYX audit integration is
+        running. Actor information may be unavailable if ONYX lacks Discord's
+        View Audit Log permission.
+      </p>
+    </section>
+
+    <p id="global-status" class="status-line" aria-live="polite"></p>
   </section>
 </main>
 
-<footer><div class="wrap foot">
-  <a class="brand" href="/"><img class="brand-mark" src="/assets/onyx-mark.png" alt=""> ONYX</a>
-  <span>© <span data-year></span> ONYX Development · Vrtx</span>
-  <div><a href="/features">Features</a><a href="/docs">Documentation</a><a href="/commands/">Commands</a><a href="/shop/">Prestige Shop</a><a href="/support">Support</a></div>
-</div></footer>
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/onyx-mark.png" alt=""> ONYX
+    </a>
+    <span>© <span data-year></span> ONYX Development · Vrtx</span>
+    <div>
+      <a href="/features">Features</a>
+      <a href="/docs">Documentation</a>
+      <a href="/commands/">Commands</a>
+      <a href="/shop/">Prestige Shop</a>
+      <a href="/support">Support</a>
+    </div>
+  </div>
+</footer>
+
 <script src="../assets/site.js"></script>
 <script src="../assets/dashboard.js"></script>
+<script src="../assets/management.js"></script>
 </body>
 </html>
