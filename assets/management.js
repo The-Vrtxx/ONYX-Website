@@ -1,134 +1,824 @@
-(() => {
-  const API = "https://api.onyxdiscord.com";
-  const $ = id => document.getElementById(id);
-  let guilds = [], selected = null, roleData = null;
-  const request = async (path, options = {}) => {
-    const res = await fetch(API + path, { ...options, credentials: "include", headers: {"Content-Type":"application/json", ...(options.headers || {})} });
-    let data = {}; try { data = await res.json(); } catch {}
-    if (!res.ok) throw new Error(data.error || `Request failed (${res.status}).`);
-    return data;
-  };
-  const qs = obj => new URLSearchParams(obj).toString();
-  const esc = value => String(value ?? "");
-  const setStatus = (id, message, kind = "") => { const el=$(id); if(el){el.textContent=message;el.className=`status-line ${kind}`;} };
-  const date = value => value ? new Date(value).toLocaleString() : "—";
-  const empty = (host, text) => { host.replaceChildren(); const el=document.createElement("div"); el.className="empty"; el.textContent=text; host.append(el); };
-  const el = (tag, cls, text) => { const node=document.createElement(tag); if(cls)node.className=cls; if(text!==undefined)node.textContent=text; return node; };
-  const guildQuery = path => `${path}${path.includes("?") ? "&" : "?"}guild_id=${encodeURIComponent(selected.id)}`;
 
-  async function start() {
+(() => {
+  const $ = id => document.getElementById(id);
+
+  let selected = null;
+  let roleData = null;
+  let unsubscribe = null;
+  let loadVersion = 0;
+
+  const request = async (path, options = {}) => {
+    if (!window.ONYXDashboard?.api) {
+      throw new Error("The ONYX dashboard connection is not ready.");
+    }
+
+    return window.ONYXDashboard.api(path, options);
+  };
+
+  const qs = obj => new URLSearchParams(obj).toString();
+
+  const date = value =>
+    value ? new Date(value).toLocaleString() : "—";
+
+  const empty = (host, message) => {
+    if (!host) return;
+
+    host.replaceChildren();
+
+    const node = document.createElement("div");
+    node.className = "empty";
+    node.textContent = message;
+
+    host.append(node);
+  };
+
+  const el = (tag, cls, text) => {
+    const node = document.createElement(tag);
+
+    if (cls) node.className = cls;
+    if (text !== undefined) node.textContent = text;
+
+    return node;
+  };
+
+  const setStatus = (id, message, kind = "") => {
+    const node = $(id);
+
+    if (!node) return;
+
+    node.textContent = message;
+    node.className = `status-line ${kind}`;
+  };
+
+  const guildQuery = path => {
+    if (!selected) {
+      throw new Error("Select a server first.");
+    }
+
+    const separator = path.includes("?") ? "&" : "?";
+
+    return `${path}${separator}guild_id=${encodeURIComponent(selected.id)}`;
+  };
+
+  /*
+   * Load all management information for the selected server.
+   * A version number prevents a slower previous server request
+   * from updating the page after the user switches servers.
+   */
+  async function selectGuild(guild) {
+    if (!guild) return;
+
+    selected = guild;
+    roleData = null;
+
+    const thisLoad = ++loadVersion;
+
+    const permission = window.ONYXDashboard.getPermissionText(guild);
+
+    setStatus(
+      "global-status",
+      `Loading management information for ${guild.name}…`
+    );
+
+    $("selected-name").textContent = guild.name;
+    $("selected-permission").textContent =
+      `Your access: ${permission}.`;
+
+    const tasks = [
+      loadOverview(thisLoad),
+      loadModeration(thisLoad),
+      loadAnalytics(thisLoad),
+      loadRoles(thisLoad),
+      loadAudit(thisLoad)
+    ];
+
+    await Promise.allSettled(tasks);
+
+    if (thisLoad !== loadVersion) return;
+
+    setStatus(
+      "global-status",
+      `Management information loaded for ${guild.name}.`,
+      "success"
+    );
+  }
+
+  /* ---------------------------
+     SERVER OVERVIEW
+  --------------------------- */
+
+  async function loadOverview(version = loadVersion) {
     try {
-      const user = await request("/api/me");
-      $("login-panel").hidden = true; $("app-panel").hidden = false; $("logout").hidden = false;
-      $("account-name").textContent = user.username || "Discord account";
-      const data = await request("/api/guilds"); guilds = data.guilds || [];
-      const select = $("guild-select"); select.replaceChildren();
-      if (!guilds.length) { const opt=el("option", "", "No manageable servers found"); opt.value=""; select.append(opt); setStatus("global-status", data.message || "No manageable servers with ONYX installed were found.", "error"); return; }
-      for (const g of guilds) { const opt=el("option", "", g.name); opt.value=g.id; select.append(opt); }
-      await selectGuild(guilds[0]);
-      select.addEventListener("change", () => selectGuild(guilds.find(g=>g.id===select.value)));
-    } catch (err) {
-      $("login-panel").hidden = false; $("app-panel").hidden = true;
-      if (err.message !== "Sign in with Discord first.") setStatus("global-status", err.message, "error");
+      const data = await request(
+        guildQuery("/api/server/overview")
+      );
+
+      if (version !== loadVersion) return;
+
+      const server = data.server || {};
+
+      const values = [
+        server.member_count,
+        server.channel_count,
+        data.moderation_cases_30d,
+        data.automod_events_7d
+      ];
+
+      const labels = [
+        "Server members",
+        "Channels",
+        "Moderation cases · 30d",
+        "AutoMod catches · 7d"
+      ];
+
+      const metrics = $("metrics");
+      metrics.replaceChildren();
+
+      values.forEach((value, index) => {
+        const box = el("div", "metric");
+
+        box.append(
+          el("small", "", labels[index]),
+          el(
+            "strong",
+            "",
+            Number(value || 0).toLocaleString()
+          )
+        );
+
+        metrics.append(box);
+      });
+
+      const status = $("bot-status");
+
+      status.textContent =
+        server.bot_status === "online"
+          ? "ONYX online"
+          : "Status delayed";
+
+      status.className =
+        `status ${server.bot_status === "online" ? "online" : ""}`;
+
+      $("last-seen").textContent =
+        `Last sync: ${date(server.last_seen)}`;
+
+      $("server-summary").textContent =
+        `${server.name || selected.name} has ${Number(server.role_count || 0).toLocaleString()} roles. Bot status is based on its latest database heartbeat.`;
+
+      const host = $("overview-cases");
+      host.replaceChildren();
+
+      const cases = data.recent_cases || [];
+
+      if (!cases.length) {
+        empty(host, "No moderation cases recorded yet.");
+        return;
+      }
+
+      cases.forEach(item => {
+        host.append(makeHistoryRow(item));
+      });
+
+    } catch (error) {
+      if (version === loadVersion) {
+        setStatus("global-status", error.message, "error");
+      }
     }
   }
 
-  async function selectGuild(guild) {
-    if (!guild) return; selected=guild; roleData=null;
-    $("guild-select").value=guild.id;
-    const permission = guild.owner ? "Server Owner" : guild.administrator ? "Administrator" : guild.manage_server ? "Manage Server" : "Manager";
-    $("guild-permission").textContent=`Access: ${permission}`;
-    setStatus("global-status", `Loading ${guild.name}…`);
-    await Promise.allSettled([loadOverview(), loadModeration(), loadAnalytics(), loadRoles(), loadAudit()]);
-    setStatus("global-status", `Showing management data for ${guild.name}.`, "success");
-  }
-
-  async function loadOverview() {
-    try {
-      const d=await request(guildQuery("/api/server/overview")); const s=d.server;
-      const vals=[s.member_count,s.channel_count,d.moderation_cases_30d,d.automod_events_7d];
-      const labels=["Server members","Channels","Moderation cases · 30d","AutoMod catches · 7d"];
-      const metrics=$("metrics"); metrics.replaceChildren(); vals.forEach((v,i)=>{const box=el("div","metric");box.append(el("small","",labels[i]),el("strong","",Number(v).toLocaleString()));metrics.append(box);});
-      const status=$("bot-status");status.textContent=s.bot_status==="online"?"ONYX online":"Status delayed";status.className=`status ${s.bot_status==="online"?"online":""}`;
-      $("last-seen").textContent=`Last sync: ${date(s.last_seen)}`;
-      $("server-summary").textContent=`${s.name} has ${Number(s.role_count).toLocaleString()} roles. Bot status is based on its latest database heartbeat.`;
-      const host=$("overview-cases");host.replaceChildren();
-      if(!d.recent_cases.length) return empty(host,"No moderation cases recorded yet.");
-      d.recent_cases.forEach(c=>host.append(makeHistoryRow(c)));
-    } catch(e) { setStatus("global-status",e.message,"error"); }
-  }
-
   function makeHistoryRow(item) {
-    const row=el("article","row-card"), left=el("div"), title=el("strong","",`#${item.id} · ${item.action || "warning"}`), sub=el("p","",`Member ${item.user_id} · Moderator ${item.moderator_id} · ${date(item.created_at)}`);
-    left.append(title,sub); row.append(left,el("p","",item.reason || "No reason recorded"));
-    if(item.kind==="case") { const b=el("button","btn secondary","Details");b.addEventListener("click",()=>showCase(item.id));row.append(b); }
+    const row = el("article", "row-card");
+    const left = el("div");
+
+    const title = el(
+      "strong",
+      "",
+      `#${item.id} · ${item.action || "warning"}`
+    );
+
+    const subtitle = el(
+      "p",
+      "",
+      `Member ${item.user_id} · Moderator ${item.moderator_id} · ${date(item.created_at)}`
+    );
+
+    left.append(title, subtitle);
+
+    row.append(
+      left,
+      el("p", "", item.reason || "No reason recorded")
+    );
+
+    if (item.kind === "case") {
+      const button = el("button", "btn secondary", "Details");
+
+      button.addEventListener("click", () => {
+        showCase(item.id);
+      });
+
+      row.append(button);
+    }
+
     return row;
   }
 
-  async function loadModeration() {
-    const host=$("moderation-list"); empty(host,"Loading moderation history…"); $("case-detail").replaceChildren();
+  /* ---------------------------
+     MODERATION HISTORY
+  --------------------------- */
+
+  async function loadModeration(version = loadVersion) {
+    const host = $("moderation-list");
+
+    empty(host, "Loading moderation history…");
+    $("case-detail").replaceChildren();
+
     try {
-      const member=$("member-search").value.trim(); const data=await request(guildQuery(`/api/server/moderation?${qs({limit:50,...(member?{member_id:member}:{})})}`));
-      host.replaceChildren(); if(!data.items.length)return empty(host,"No warnings or moderation cases found.");
-      data.items.forEach(item=>host.append(makeHistoryRow(item)));
-    } catch(e) { empty(host,e.message); }
+      const member = $("member-search").value.trim();
+
+      const query = qs({
+        limit: 50,
+        ...(member ? { member_id: member } : {})
+      });
+
+      const data = await request(
+        guildQuery(`/api/server/moderation?${query}`)
+      );
+
+      if (version !== loadVersion) return;
+
+      host.replaceChildren();
+
+      const items = data.items || [];
+
+      if (!items.length) {
+        empty(host, "No warnings or moderation cases found.");
+        return;
+      }
+
+      items.forEach(item => {
+        host.append(makeHistoryRow(item));
+      });
+
+    } catch (error) {
+      if (version === loadVersion) {
+        empty(host, error.message);
+      }
+    }
   }
+
   async function showCase(id) {
-    try { const d=await request(guildQuery(`/api/server/moderation/case?case_id=${encodeURIComponent(id)}`)); const c=d.case; const box=$("case-detail");box.replaceChildren();
-      const panel=el("div","case-detail");panel.append(el("h3","",`Case #${c.id}`),el("p","",`Action: ${c.action}`),el("p","",`Member: ${c.user_id}`),el("p","",`Moderator: ${c.moderator_id}`),el("p","",`Reason: ${c.reason}`),el("p","",`Date: ${date(c.created_at)}`));box.append(panel);
-    } catch(e) { setStatus("global-status",e.message,"error"); }
+    try {
+      const data = await request(
+        guildQuery(
+          `/api/server/moderation/case?case_id=${encodeURIComponent(id)}`
+        )
+      );
+
+      const item = data.case;
+
+      if (!item) {
+        throw new Error("Moderation case was not found.");
+      }
+
+      const box = $("case-detail");
+      box.replaceChildren();
+
+      const panel = el("div", "case-detail");
+
+      panel.append(
+        el("h3", "", `Case #${item.id}`),
+        el("p", "", `Action: ${item.action}`),
+        el("p", "", `Member: ${item.user_id}`),
+        el("p", "", `Moderator: ${item.moderator_id}`),
+        el("p", "", `Reason: ${item.reason || "No reason recorded"}`),
+        el("p", "", `Date: ${date(item.created_at)}`)
+      );
+
+      box.append(panel);
+
+    } catch (error) {
+      setStatus("global-status", error.message, "error");
+    }
   }
+
+  /* ---------------------------
+     AUTOMOD ANALYTICS
+  --------------------------- */
 
   function renderBars(host, items, nameKey) {
-    host.replaceChildren(); if(!items.length)return empty(host,"No activity recorded in this period.");
-    const max=Math.max(...items.map(x=>x.total),1);
-    items.forEach(item=>{const row=el("div","bar-item"),name=el("span","",item[nameKey]),track=el("div","bar-track"),fill=el("div","bar-fill");fill.style.width=`${Math.max(2,item.total/max*100)}%`;track.append(fill);row.append(name,track,el("strong","",String(item.total)));host.append(row);});
-  }
-  async function loadAnalytics() {
-    try {
-      const days=$("analytics-days").value;const d=await request(guildQuery(`/api/server/automod/analytics?days=${days}`));
-      const host=$("automod-metrics");host.replaceChildren();[["Total triggers",d.total],["Successful actions",d.successful],["Unsuccessful actions",d.unsuccessful],["Reporting window",`${d.days}d`]].forEach(([label,value])=>{const box=el("div","metric");box.append(el("small","",label),el("strong","",Number.isFinite(value)?Number(value).toLocaleString():value));host.append(box);});
-      renderBars($("filter-breakdown"),d.by_filter,"name");renderBars($("punishment-breakdown"),d.by_punishment,"name");
-      const recent=$("automod-recent");recent.replaceChildren();if(!d.recent.length)empty(recent,"No AutoMod triggers have been recorded yet.");
-      d.recent.forEach(r=>{const row=el("article","row-card"),left=el("div");left.append(el("strong","",`${r.filter} · ${r.punishment}`),el("p","",`Member ${r.user_id || "unknown"} · Channel ${r.channel_id || "unknown"} · ${date(r.created_at)}`));row.append(left,el("span",`status ${r.success?"online":""}`,r.success?"Action succeeded":"Action failed"));recent.append(row);});
-    } catch(e) { empty($("automod-recent"),e.message); }
+    host.replaceChildren();
+
+    if (!items || !items.length) {
+      empty(host, "No activity recorded in this period.");
+      return;
+    }
+
+    const max = Math.max(
+      ...items.map(item => Number(item.total) || 0),
+      1
+    );
+
+    items.forEach(item => {
+      const row = el("div", "bar-item");
+      const name = el("span", "", item[nameKey] || "Unknown");
+      const track = el("div", "bar-track");
+      const fill = el("div", "bar-fill");
+
+      fill.style.width =
+        `${Math.max(2, (Number(item.total) || 0) / max * 100)}%`;
+
+      track.append(fill);
+
+      row.append(
+        name,
+        track,
+        el("strong", "", String(item.total || 0))
+      );
+
+      host.append(row);
+    });
   }
 
-  function roleName(id) { return roleData?.roles?.find(r=>r.id===String(id))?.name || `Deleted role (${id})`; }
-  async function loadRoles() {
+  async function loadAnalytics(version = loadVersion) {
     try {
-      roleData=await request(guildQuery("/api/server/roles"));
-      const manageable=roleData.roles.filter(r=>r.manageable);
-      for(const id of ["role-select","reward-role","reaction-role"]) { const sel=$(id);sel.replaceChildren(); manageable.forEach(r=>{const o=el("option","",`${r.name} · ${r.id}`);o.value=r.id;sel.append(o);}); if(!manageable.length)sel.append(el("option","","No manageable roles synced")); }
-      renderRoleList("autorole-list",roleData.autoroles,"autorole_remove");renderRoleList("selfrole-list",roleData.selfroles,"selfrole_remove");
-      renderRoleList("reward-list",roleData.level_rewards.map(r=>({...r, label:`Level ${r.level} → ${roleName(r.role_id)}`})),"reward_remove",true);
-      const host=$("reaction-list");host.replaceChildren();if(!roleData.reaction_roles.length)empty(host,"No reaction roles configured.");
-      roleData.reaction_roles.forEach(r=>{const row=el("article","row-card"),left=el("div");left.append(el("strong","",`${r.emoji} → ${roleName(r.role_id)}`),el("p","",`Channel ${r.channel_id} · Message ${r.message_id}`));const b=el("button","btn danger","Remove");b.addEventListener("click",()=>saveRole({action:"reactionrole_remove",message_id:r.message_id,emoji:r.emoji}));row.append(left,b);host.append(row);});
-      setStatus("roles-status",`${manageable.length} roles are currently manageable by ONYX.`,"success");
-    } catch(e) { setStatus("roles-status",e.message,"error"); }
+      const days = $("analytics-days").value;
+
+      const data = await request(
+        guildQuery(
+          `/api/server/automod/analytics?days=${encodeURIComponent(days)}`
+        )
+      );
+
+      if (version !== loadVersion) return;
+
+      const host = $("automod-metrics");
+      host.replaceChildren();
+
+      [
+        ["Total triggers", data.total],
+        ["Successful actions", data.successful],
+        ["Unsuccessful actions", data.unsuccessful],
+        ["Reporting window", `${data.days || days}d`]
+      ].forEach(([label, value]) => {
+        const box = el("div", "metric");
+
+        box.append(
+          el("small", "", label),
+          el(
+            "strong",
+            "",
+            Number.isFinite(Number(value))
+              ? Number(value).toLocaleString()
+              : String(value ?? "—")
+          )
+        );
+
+        host.append(box);
+      });
+
+      renderBars(
+        $("filter-breakdown"),
+        data.by_filter || [],
+        "name"
+      );
+
+      renderBars(
+        $("punishment-breakdown"),
+        data.by_punishment || [],
+        "name"
+      );
+
+      const recent = $("automod-recent");
+      recent.replaceChildren();
+
+      const events = data.recent || [];
+
+      if (!events.length) {
+        empty(recent, "No AutoMod triggers have been recorded yet.");
+        return;
+      }
+
+      events.forEach(item => {
+        const row = el("article", "row-card");
+        const left = el("div");
+
+        left.append(
+          el(
+            "strong",
+            "",
+            `${item.filter || "Unknown filter"} · ${item.punishment || "No action"}`
+          ),
+          el(
+            "p",
+            "",
+            `Member ${item.user_id || "unknown"} · Channel ${item.channel_id || "unknown"} · ${date(item.created_at)}`
+          )
+        );
+
+        row.append(
+          left,
+          el(
+            "span",
+            `status ${item.success ? "online" : ""}`,
+            item.success ? "Action succeeded" : "Action failed"
+          )
+        );
+
+        recent.append(row);
+      });
+
+    } catch (error) {
+      if (version === loadVersion) {
+        empty($("automod-recent"), error.message);
+      }
+    }
   }
-  function renderRoleList(hostId, ids, action, rewards=false) {
-    const host=$(hostId);host.replaceChildren();if(!ids.length)return empty(host,"None configured.");
-    ids.forEach(item=>{const id=rewards?item.role_id:item;const row=el("article","row-card"),label=rewards?item.label:roleName(id),left=el("div");left.append(el("strong","",label));const b=el("button","btn danger","Remove");b.addEventListener("click",()=>saveRole(rewards?{action,level:item.level}:{action,role_id:id}));row.append(left,b);host.append(row);});
+
+  /* ---------------------------
+     ROLE MANAGEMENT
+  --------------------------- */
+
+  function roleName(id) {
+    return (
+      roleData?.roles?.find(
+        role => role.id === String(id)
+      )?.name || `Deleted role (${id})`
+    );
   }
+
+  async function loadRoles(version = loadVersion) {
+    try {
+      const data = await request(
+        guildQuery("/api/server/roles")
+      );
+
+      if (version !== loadVersion) return;
+
+      roleData = data;
+
+      const roles = (roleData.roles || []).filter(
+        role => role.manageable
+      );
+
+      for (const id of [
+        "role-select",
+        "reward-role",
+        "reaction-role"
+      ]) {
+        const select = $(id);
+        select.replaceChildren();
+
+        roles.forEach(role => {
+          const option = el(
+            "option",
+            "",
+            `${role.name} · ${role.id}`
+          );
+
+          option.value = role.id;
+          select.append(option);
+        });
+
+        if (!roles.length) {
+          const option = el(
+            "option",
+            "",
+            "No manageable roles synced"
+          );
+
+          option.value = "";
+          select.append(option);
+        }
+      }
+
+      renderRoleList(
+        "autorole-list",
+        roleData.autoroles || [],
+        "autorole_remove"
+      );
+
+      renderRoleList(
+        "selfrole-list",
+        roleData.selfroles || [],
+        "selfrole_remove"
+      );
+
+      renderRoleList(
+        "reward-list",
+        (roleData.level_rewards || []).map(item => ({
+          ...item,
+          label: `Level ${item.level} → ${roleName(item.role_id)}`
+        })),
+        "reward_remove",
+        true
+      );
+
+      const host = $("reaction-list");
+      host.replaceChildren();
+
+      const reactions = roleData.reaction_roles || [];
+
+      if (!reactions.length) {
+        empty(host, "No reaction roles configured.");
+      }
+
+      reactions.forEach(item => {
+        const row = el("article", "row-card");
+        const left = el("div");
+
+        left.append(
+          el(
+            "strong",
+            "",
+            `${item.emoji} → ${roleName(item.role_id)}`
+          ),
+          el(
+            "p",
+            "",
+            `Channel ${item.channel_id} · Message ${item.message_id}`
+          )
+        );
+
+        const button = el("button", "btn danger", "Remove");
+
+        button.addEventListener("click", () => {
+          saveRole({
+            action: "reactionrole_remove",
+            message_id: item.message_id,
+            emoji: item.emoji
+          });
+        });
+
+        row.append(left, button);
+        host.append(row);
+      });
+
+      setStatus(
+        "roles-status",
+        `${roles.length} roles are currently manageable by ONYX.`,
+        "success"
+      );
+
+    } catch (error) {
+      if (version === loadVersion) {
+        setStatus("roles-status", error.message, "error");
+      }
+    }
+  }
+
+  function renderRoleList(
+    hostId,
+    items,
+    action,
+    rewards = false
+  ) {
+    const host = $(hostId);
+    host.replaceChildren();
+
+    if (!items.length) {
+      empty(host, "None configured.");
+      return;
+    }
+
+    items.forEach(item => {
+      const id = rewards ? item.role_id : item;
+
+      const row = el("article", "row-card");
+      const left = el("div");
+
+      const label = rewards
+        ? item.label
+        : roleName(id);
+
+      left.append(el("strong", "", label));
+
+      const button = el("button", "btn danger", "Remove");
+
+      button.addEventListener("click", () => {
+        saveRole(
+          rewards
+            ? { action, level: item.level }
+            : { action, role_id: id }
+        );
+      });
+
+      row.append(left, button);
+      host.append(row);
+    });
+  }
+
   async function saveRole(payload) {
-    if(!selected)return;setStatus("roles-status","Saving…");
-    try { await request("/api/server/roles",{method:"POST",body:JSON.stringify({...payload,guild_id:selected.id})});setStatus("roles-status","Role settings saved.","success");await loadRoles(); }
-    catch(e){setStatus("roles-status",e.message,"error");}
+    if (!selected) return;
+
+    setStatus("roles-status", "Saving…");
+
+    try {
+      await request("/api/server/roles", {
+        method: "POST",
+        body: JSON.stringify({
+          ...payload,
+          guild_id: selected.id
+        })
+      });
+
+      setStatus(
+        "roles-status",
+        "Role settings saved.",
+        "success"
+      );
+
+      await loadRoles();
+
+    } catch (error) {
+      setStatus("roles-status", error.message, "error");
+    }
   }
 
-  async function loadAudit() {
-    const host=$("audit-list");empty(host,"Loading activity…");
-    try {const type=$("audit-filter").value;const d=await request(guildQuery(`/api/server/audit?${qs({limit:75,...(type?{event_type:type}:{})})}`));host.replaceChildren();if(!d.items.length)return empty(host,"No audit events captured yet. New events will appear here while the ONYX audit integration is running.");
-      d.items.forEach(item=>{const row=el("article","row-card"),left=el("div");left.append(el("strong","",item.event_type.replaceAll("_"," ")),el("p","",item.summary),el("p","",`${date(item.created_at)} · Actor: ${item.actor_id||"Unavailable"} · Target: ${item.target_id||"—"}`));row.append(left);host.append(row);});
-    } catch(e){empty(host,e.message);}
+  /* ---------------------------
+     AUDIT LOG
+  --------------------------- */
+
+  async function loadAudit(version = loadVersion) {
+    const host = $("audit-list");
+
+    empty(host, "Loading activity…");
+
+    try {
+      const type = $("audit-filter").value;
+
+      const query = qs({
+        limit: 75,
+        ...(type ? { event_type: type } : {})
+      });
+
+      const data = await request(
+        guildQuery(`/api/server/audit?${query}`)
+      );
+
+      if (version !== loadVersion) return;
+
+      host.replaceChildren();
+
+      const items = data.items || [];
+
+      if (!items.length) {
+        empty(
+          host,
+          "No audit events captured yet. New events will appear here while the ONYX audit integration is running."
+        );
+
+        return;
+      }
+
+      items.forEach(item => {
+        const row = el("article", "row-card");
+        const left = el("div");
+
+        left.append(
+          el(
+            "strong",
+            "",
+            (item.event_type || "unknown").replaceAll("_", " ")
+          ),
+          el("p", "", item.summary || "No event summary available."),
+          el(
+            "p",
+            "",
+            `${date(item.created_at)} · Actor: ${item.actor_id || "Unavailable"} · Target: ${item.target_id || "—"}`
+          )
+        );
+
+        row.append(left);
+        host.append(row);
+      });
+
+    } catch (error) {
+      if (version === loadVersion) {
+        empty(host, error.message);
+      }
+    }
   }
 
-  document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b===btn));document.querySelectorAll(".tab-panel").forEach(p=>p.classList.toggle("active",p.id===`tab-${btn.dataset.tab}`));}));
-  $("load-moderation").addEventListener("click",loadModeration);$("load-analytics").addEventListener("click",loadAnalytics);$("analytics-days").addEventListener("change",loadAnalytics);$("refresh-roles").addEventListener("click",loadRoles);$("load-audit").addEventListener("click",loadAudit);$("audit-filter").addEventListener("change",loadAudit);
-  $("autorole-add").addEventListener("click",()=>saveRole({action:"autorole_add",role_id:$("role-select").value}));$("selfrole-add").addEventListener("click",()=>saveRole({action:"selfrole_add",role_id:$("role-select").value}));
-  $("reward-save").addEventListener("click",()=>saveRole({action:"reward_set",level:$("reward-level").value,role_id:$("reward-role").value}));
-  $("reaction-save").addEventListener("click",()=>saveRole({action:"reactionrole_add",channel_id:$("reaction-channel").value,message_id:$("reaction-message").value,emoji:$("reaction-emoji").value,role_id:$("reaction-role").value}));
-  $("logout").addEventListener("click",async()=>{try{await request("/auth/logout",{method:"POST",body:"{}"});}catch{}location.reload();});
-  start();
+  /* ---------------------------
+     EVENT LISTENERS
+  --------------------------- */
+
+  $("load-moderation").addEventListener("click", () => {
+    if (selected) loadModeration();
+  });
+
+  $("load-analytics").addEventListener("click", () => {
+    if (selected) loadAnalytics();
+  });
+
+  $("analytics-days").addEventListener("change", () => {
+    if (selected) loadAnalytics();
+  });
+
+  $("refresh-roles").addEventListener("click", () => {
+    if (selected) loadRoles();
+  });
+
+  $("load-audit").addEventListener("click", () => {
+    if (selected) loadAudit();
+  });
+
+  $("audit-filter").addEventListener("change", () => {
+    if (selected) loadAudit();
+  });
+
+  $("autorole-add").addEventListener("click", () => {
+    saveRole({
+      action: "autorole_add",
+      role_id: $("role-select").value
+    });
+  });
+
+  $("selfrole-add").addEventListener("click", () => {
+    saveRole({
+      action: "selfrole_add",
+      role_id: $("role-select").value
+    });
+  });
+
+  $("reward-save").addEventListener("click", () => {
+    const level = Number($("reward-level").value);
+    const roleId = $("reward-role").value;
+
+    if (!Number.isInteger(level) || level < 1 || level > 10000) {
+      setStatus(
+        "roles-status",
+        "Enter a valid reward level between 1 and 10000.",
+        "error"
+      );
+      return;
+    }
+
+    if (!roleId) {
+      setStatus(
+        "roles-status",
+        "Select a reward role first.",
+        "error"
+      );
+      return;
+    }
+
+    saveRole({
+      action: "reward_set",
+      level,
+      role_id: roleId
+    });
+  });
+
+  $("reaction-save").addEventListener("click", () => {
+    const channelId = $("reaction-channel").value.trim();
+    const messageId = $("reaction-message").value.trim();
+    const emoji = $("reaction-emoji").value.trim();
+    const roleId = $("reaction-role").value;
+
+    if (!channelId || !messageId || !emoji || !roleId) {
+      setStatus(
+        "roles-status",
+        "Complete all reaction role fields before saving.",
+        "error"
+      );
+      return;
+    }
+
+    saveRole({
+      action: "reactionrole_add",
+      channel_id: channelId,
+      message_id: messageId,
+      emoji,
+      role_id: roleId
+    });
+  });
+
+  /*
+   * Subscribe to the main dashboard's shared server selection.
+   */
+  function connectToDashboard() {
+    if (!window.ONYXDashboard?.subscribe) {
+      setStatus(
+        "global-status",
+        "Waiting for the main ONYX dashboard to initialize…"
+      );
+
+      return false;
+    }
+
+    if (unsubscribe) unsubscribe();
+
+    unsubscribe = window.ONYXDashboard.subscribe(selectGuild);
+
+    return true;
+  }
+
+  if (!connectToDashboard()) {
+    document.addEventListener(
+      "onyx-dashboard-ready",
+      connectToDashboard,
+      { once: true }
+    );
+  }
 })();
