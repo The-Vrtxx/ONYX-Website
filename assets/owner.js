@@ -32,6 +32,8 @@ async function api(path, options) {
   return data;
 }
 
+// MESSAGES
+
 function setMessage(message, isError) {
   const el = $("team-message");
   if (!el) return;
@@ -48,6 +50,8 @@ function setAssetMessage(message, isError) {
   el.className = isError ? "message error" : "message";
 }
 
+// ACCOUNT
+
 function avatarUrl(user) {
   if (!user.avatar) return "../assets/onyx-mark.png";
 
@@ -55,6 +59,8 @@ function avatarUrl(user) {
     encodeURIComponent(user.id) + "/" +
     encodeURIComponent(user.avatar) + ".png?size=96";
 }
+
+// SYSTEM OVERVIEW
 
 async function loadOverview() {
   const data = await api("/api/developer/overview");
@@ -143,6 +149,11 @@ async function loadTeam() {
 
 // ASSET LIBRARY
 
+function historyElementId(assetId) {
+  return "history-" +
+    assetId.replace(/[^a-z0-9_-]/gi, "-");
+}
+
 function renderAssets(assets) {
   const list = $("asset-list");
   list.replaceChildren();
@@ -176,7 +187,13 @@ function renderAssets(assets) {
       asset.item_id + " · " +
       asset.rarity + " · " +
       numberFormat.format(asset.price_tokens) +
-      " tokens · v" + asset.version;
+      " tokens";
+
+    const version = document.createElement("div");
+    version.className = "asset-meta";
+    version.style.fontWeight = "bold";
+    version.style.color = "var(--teal)";
+    version.textContent = "CURRENT VERSION: v" + asset.version;
 
     const status = document.createElement("div");
     status.className = "asset-meta";
@@ -185,7 +202,7 @@ function renderAssets(assets) {
       " · " +
       (asset.is_shop_item ? "In shop" : "Not in shop");
 
-    info.append(title, meta, status);
+    info.append(title, meta, version, status);
     top.append(info);
     card.append(top);
 
@@ -216,16 +233,17 @@ function renderAssets(assets) {
 
     const historyBox = document.createElement("div");
     historyBox.className = "asset-history";
-    historyBox.id =
-      "history-" + asset.asset_id.replace(/[^a-z0-9_-]/gi, "-");
+    historyBox.id = historyElementId(asset.asset_id);
 
     card.append(historyBox);
     list.append(card);
   });
 }
 
-async function loadAssets() {
-  setAssetMessage("Loading assets…", false);
+async function loadAssets(showMessage = true) {
+  if (showMessage) {
+    setAssetMessage("Loading assets…", false);
+  }
 
   const category = $("asset-category-filter").value;
   const status = $("asset-status-filter").value;
@@ -254,13 +272,19 @@ async function loadAssets() {
 
     renderAssets(currentAssets);
 
-    setAssetMessage(
-      numberFormat.format(data.count || 0) + " assets loaded.",
-      false
-    );
+    if (showMessage) {
+      setAssetMessage(
+        numberFormat.format(data.count || 0) +
+        " assets loaded.",
+        false
+      );
+    }
+
+    return true;
   } catch (error) {
     renderAssets([]);
     setAssetMessage(error.message, true);
+    return false;
   }
 }
 
@@ -341,10 +365,7 @@ function openAssetEditor(asset) {
 // VERSION HISTORY
 
 async function loadAssetHistory(assetId) {
-  const safeId =
-    "history-" + assetId.replace(/[^a-z0-9_-]/gi, "-");
-
-  const box = $(safeId);
+  const box = $(historyElementId(assetId));
   if (!box) return;
 
   box.textContent = "Loading version history…";
@@ -359,32 +380,42 @@ async function loadAssetHistory(assetId) {
     box.replaceChildren();
 
     const heading = document.createElement("strong");
-    heading.textContent = "Version history";
+    heading.textContent = "SAVED VERSION HISTORY";
     box.append(heading);
 
-    (data.versions || []).forEach(version => {
+    const versions = data.versions || [];
+
+    versions.forEach(version => {
       const line = document.createElement("div");
 
+      line.style.padding = "9px 0";
+      line.style.borderBottom = "1px solid var(--line)";
+
       line.textContent =
-        "v" + version.version +
+        "VERSION " + version.version +
         " · " + version.display_name +
         " · " + (version.change_note || "Updated") +
         " · " +
         (version.created_at
           ? new Date(version.created_at).toLocaleString()
-          : "date unavailable") +
-        " · by " + (version.changed_by || "unknown");
+          : "Date unavailable") +
+        " · By " + (version.changed_by || "Unknown");
 
       box.append(line);
     });
 
-    if (!(data.versions || []).length) {
+    if (!versions.length) {
       const empty = document.createElement("div");
-      empty.textContent = "No saved versions yet.";
+      empty.textContent = "No saved versions found.";
       box.append(empty);
     }
+
+    return versions;
   } catch (error) {
-    box.textContent = error.message;
+    box.textContent =
+      "Could not load version history: " + error.message;
+
+    throw error;
   }
 }
 
@@ -407,7 +438,7 @@ async function saveAsset(event) {
     }
   } catch (error) {
     setAssetMessage(
-      "Metadata JSON error: " + error.message,
+      "Metadata error: " + error.message,
       true
     );
     return;
@@ -461,17 +492,47 @@ async function saveAsset(event) {
       });
     }
 
+    const savedAsset = result.asset;
+    const savedAssetId = savedAsset.asset_id;
+    const savedVersion = savedAsset.version;
+
     $("asset-editor").hidden = true;
     resetAssetForm();
 
+    // Refresh the catalog first so the new version is visible.
+    const refreshed = await loadAssets(false);
+
+    if (!refreshed) {
+      throw new Error(
+        "The save succeeded, but the asset list could not refresh."
+      );
+    }
+
+    // Show the saved version number after refreshing.
     setAssetMessage(
-      wasEditing ? "Asset updated." : "Asset created.",
+      "SUCCESS! " + savedAsset.display_name +
+      " was saved as VERSION " + savedVersion + ".",
       false
     );
 
-    await loadAssets();
+    // Automatically load the saved version history.
+    await loadAssetHistory(savedAssetId);
+
+    // Scroll to the updated asset's version history.
+    const historyBox = $(historyElementId(savedAssetId));
+
+    if (historyBox) {
+      historyBox.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }
+
   } catch (error) {
-    setAssetMessage(error.message, true);
+    setAssetMessage(
+      "SAVE FAILED: " + error.message,
+      true
+    );
   } finally {
     button.disabled = false;
   }
@@ -514,6 +575,7 @@ async function startPortal() {
     } else {
       $("developer-panel").hidden = false;
     }
+
   } catch (error) {
     if (error.message === "Sign in with Discord first.") return;
 
@@ -561,6 +623,7 @@ $("add-form").addEventListener("submit", async event => {
     setMessage(result.message, false);
 
     await loadTeam();
+
   } catch (error) {
     setMessage(error.message, true);
   }
@@ -578,10 +641,12 @@ $("cancel-asset-edit").addEventListener("click", () => {
   resetAssetForm();
 });
 
-$("refresh-assets").addEventListener("click", loadAssets);
+$("refresh-assets").addEventListener("click", () => loadAssets());
 
-$("asset-category-filter").addEventListener("change", loadAssets);
-$("asset-status-filter").addEventListener("change", loadAssets);
+$("asset-category-filter").addEventListener("change", () => loadAssets());
+$("asset-status-filter").addEventListener("change", () => loadAssets());
+
+// LOGOUT
 
 async function logout() {
   try {
@@ -596,5 +661,7 @@ async function logout() {
 
 $("logout").addEventListener("click", logout);
 $("denied-logout").addEventListener("click", logout);
+
+// START
 
 startPortal();
