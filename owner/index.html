@@ -29,8 +29,28 @@
     .remove-button{border:1px solid #753f49;background:#261318;color:#ffb8c1;padding:10px 14px;cursor:pointer}
     .message{margin-top:14px;color:var(--muted);font-size:13px}.message.error{color:#ff9999}
     .status-line{margin-top:14px;color:var(--muted);font-size:12px}
+    .asset-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:18px 0}
+    .asset-toolbar select,.asset-form input,.asset-form select,.asset-form textarea{background:#071012;border:1px solid var(--line);color:#fff;padding:12px;min-width:0;width:100%;font:inherit}
+    .asset-toolbar select{width:auto;min-width:150px}
+    .asset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .asset-card{border:1px solid var(--line);background:#091316;padding:16px;min-width:0}
+    .asset-card-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .asset-card h3{margin:0 0 5px;font-size:17px;overflow-wrap:anywhere}
+    .asset-meta{font-size:12px;color:var(--muted);line-height:1.6}
+    .asset-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .asset-actions button,.secondary-button{border:1px solid var(--line);background:#102024;color:#e9ffff;padding:9px 12px;cursor:pointer}
+    .asset-actions button:disabled{opacity:.5;cursor:not-allowed}
+    .asset-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+    .asset-form label{display:grid;gap:6px;color:var(--muted);font-size:12px}
+    .asset-form .wide{grid-column:1/-1}
+    .asset-form textarea{min-height:82px;resize:vertical}
+    .asset-form .checkline{display:flex;align-items:center;gap:9px;color:var(--muted)}
+    .asset-form .checkline input{width:auto;min-width:0}
+    .asset-form-buttons{display:flex;gap:10px;flex-wrap:wrap;grid-column:1/-1}
+    .asset-history{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+    .asset-empty{grid-column:1/-1;padding:24px;border:1px dashed var(--line);color:var(--muted);text-align:center}
     [hidden]{display:none!important}
-    @media(max-width:650px){.stat-grid{grid-template-columns:1fr}.panel{padding:20px}}
+    @media(max-width:650px){.stat-grid{grid-template-columns:1fr}.panel{padding:20px}.asset-grid,.asset-form{grid-template-columns:1fr}.asset-form .wide,.asset-form-buttons{grid-column:auto}.asset-toolbar select{width:100%}}
   </style>
 </head>
 <body>
@@ -92,6 +112,52 @@
       </form>
       <div class="message" id="team-message" role="status"></div>
       <div class="team-list" id="team-list"></div>
+    </section>
+
+    <section class="panel" id="asset-library-panel" hidden>
+      <div class="eyebrow">OWNER ONLY · GLOBAL COSMETICS</div>
+      <h2>Asset Library</h2>
+      <p class="muted">Create and manage the catalog used by ONYX profiles and the Prestige Shop. Asset IDs are permanent; editing an asset updates its current appearance without changing who owns it.</p>
+      <div class="asset-toolbar">
+        <select id="asset-category-filter" aria-label="Filter by category">
+          <option value="">All categories</option><option value="frame">Frames</option><option value="theme">Themes</option>
+          <option value="emblem">Emblems</option><option value="effect">Effects</option><option value="badge">Badges</option>
+          <option value="title">Titles</option><option value="achievement">Achievements</option><option value="background">Backgrounds</option>
+          <option value="border">Borders</option><option value="event">Event assets</option>
+        </select>
+        <select id="asset-status-filter" aria-label="Filter by status">
+          <option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option>
+        </select>
+        <button class="button" id="refresh-assets" type="button">Refresh</button>
+        <button class="button primary" id="new-asset-button" type="button">＋ Create asset</button>
+      </div>
+      <div class="message" id="asset-message" role="status"></div>
+      <div class="asset-grid" id="asset-list"><div class="asset-empty">Loading Asset Library…</div></div>
+
+      <div class="panel" id="asset-editor" hidden>
+        <div class="eyebrow" id="asset-editor-eyebrow">NEW CATALOG ITEM</div>
+        <h2 id="asset-editor-title">Create asset</h2>
+        <p class="muted" id="asset-editor-help">Choose a permanent category and item ID. These cannot be changed after creation.</p>
+        <form class="asset-form" id="asset-form">
+          <label>Category<select id="asset-category" required><option value="frame">Frame</option><option value="theme">Theme</option><option value="emblem">Emblem</option><option value="effect">Effect</option><option value="badge">Badge</option><option value="title">Title</option><option value="achievement">Achievement</option><option value="background">Background</option><option value="border">Border</option><option value="event">Event</option></select></label>
+          <label>Permanent item ID<input id="asset-item-id" maxlength="48" pattern="[a-z0-9_-]+" placeholder="example_asset" required></label>
+          <label class="wide">Display name<input id="asset-display-name" maxlength="80" required placeholder="Display name"></label>
+          <label class="wide">Description<textarea id="asset-description" maxlength="500" placeholder="Describe this asset"></textarea></label>
+          <label>Price (tokens)<input id="asset-price" type="number" min="0" max="2000000000" step="1" value="0" required></label>
+          <label>Rarity<select id="asset-rarity"><option>Common</option><option>Uncommon</option><option>Rare</option><option>Epic</option><option>Legendary</option><option>Mythic</option></select></label>
+          <label class="wide">Image URL<input id="asset-image-url" type="url" maxlength="1000" placeholder="https://…"></label>
+          <label>Sort order<input id="asset-sort-order" type="number" step="1" value="0"></label>
+          <label>Change note<input id="asset-change-note" maxlength="240" placeholder="Optional version note"></label>
+          <label class="checkline"><input id="asset-active" type="checkbox" checked> Active</label>
+          <label class="checkline"><input id="asset-shop-item" type="checkbox" checked> Available in shop</label>
+          <label class="wide">Metadata (JSON object)<textarea id="asset-metadata" spellcheck="false">{}</textarea></label>
+          <div class="asset-form-buttons">
+            <button class="button primary" id="save-asset" type="submit">Save asset</button>
+            <button class="secondary-button" id="cancel-asset-edit" type="button">Cancel</button>
+          </div>
+        </form>
+        <div class="asset-history" id="asset-history"></div>
+      </div>
     </section>
 
     <section class="panel" id="developer-panel" hidden>
