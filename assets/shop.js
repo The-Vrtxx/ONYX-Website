@@ -4,6 +4,7 @@ const API = "https://api.onyxdiscord.com";
 let catalog = [];
 let currentFilter = "all";
 let currentUser = null;
+let profileCardObjectUrl = null;
 
 const $ = id => document.getElementById(id);
 
@@ -57,13 +58,14 @@ function createProfilePreview() {
     <div class="eyebrow">YOUR ONYX IDENTITY</div>
     <h2 style="margin:10px 0 6px">Profile Card Preview</h2>
     <p style="color:var(--muted);font-size:13px;margin-bottom:18px">
-      See your current progression and equipped cosmetics.
-      Your preview updates when you equip an item.
+      This is your actual ONYX profile card, rendered by the same
+      engine used by the Discord bot. Your preview updates when
+      you equip an item.
     </p>
   `;
 
-  const canvasWrap = document.createElement("div");
-  canvasWrap.style.cssText = `
+  const imageWrap = document.createElement("div");
+  imageWrap.style.cssText = `
     width:100%;
     overflow:hidden;
     background:#050b0e;
@@ -72,16 +74,16 @@ function createProfilePreview() {
     padding:8px;
   `;
 
-  const canvas = document.createElement("canvas");
-  canvas.id = "profile-card-canvas";
-  canvas.setAttribute("aria-label", "Your ONYX profile card preview");
-  canvas.style.cssText = `
+  const image = document.createElement("img");
+  image.id = "profile-card-image";
+  image.alt = "Your ONYX profile card";
+  image.style.cssText = `
     display:block;
     width:100%;
     height:auto;
   `;
 
-  canvasWrap.append(canvas);
+  imageWrap.append(image);
 
   const status = document.createElement("p");
   status.id = "profile-preview-status";
@@ -92,7 +94,7 @@ function createProfilePreview() {
   `;
   status.textContent = "Loading your profile...";
 
-  section.append(heading, canvasWrap, status);
+  section.append(heading, imageWrap, status);
 
   const balance = $("shop-content").querySelector(".balance");
   balance.insertAdjacentElement("afterend", section);
@@ -102,41 +104,65 @@ async function refreshProfilePreview() {
   createProfilePreview();
 
   const status = $("profile-preview-status");
-  const canvas = $("profile-card-canvas");
+  const image = $("profile-card-image");
 
   try {
-    const data = await api("/api/profile-card");
+    status.textContent = "Loading your latest ONYX profile card...";
 
-    const profile = {
-      ...data.profile,
-      displayName:
-        currentUser?.username ||
-        data.profile?.displayName ||
-        "ONYX Member"
-    };
-
-    const cosmetics = data.cosmetics || {};
-
-    if (
-      !window.ONYXPreview ||
-      typeof window.ONYXPreview.renderCard !== "function"
-    ) {
-      throw new Error("Profile preview renderer unavailable.");
-    }
-
-    window.ONYXPreview.renderCard(
-      canvas,
-      profile,
-      cosmetics
+    const response = await fetch(
+      API + "/api/profile-card.png?refresh=" + Date.now(),
+      {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+        headers: {
+          "Accept": "image/png"
+        }
+      }
     );
 
+    if (!response.ok) {
+      let message = "Your profile card could not be loaded.";
+      try {
+        const data = await response.json();
+        if (data.error) message = data.error;
+      } catch {}
+      throw new Error(message);
+    }
+
+    const blob = await response.blob();
+
+    if (!blob.type.includes("image/png")) {
+      throw new Error("The profile card endpoint did not return a PNG image.");
+    }
+
+    const nextObjectUrl = URL.createObjectURL(blob);
+    const previousObjectUrl = profileCardObjectUrl;
+    profileCardObjectUrl = nextObjectUrl;
+
+    image.onload = () => {
+      if (previousObjectUrl) {
+        URL.revokeObjectURL(previousObjectUrl);
+      }
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(nextObjectUrl);
+      if (profileCardObjectUrl === nextObjectUrl) {
+        profileCardObjectUrl = null;
+      }
+      status.textContent = "The profile card image could not be displayed.";
+    };
+
+    image.src = nextObjectUrl;
     status.textContent =
-      "Showing your current progression and equipped cosmetics.";
+      "Showing your actual ONYX profile card and current equipped cosmetics.";
 
   } catch (error) {
     console.error("ONYX profile preview error:", error);
 
     status.textContent =
+      error.message ||
       "Your profile preview could not be loaded. Refresh the page to try again.";
   }
 }
@@ -408,6 +434,11 @@ $("logout").addEventListener("click", async () => {
       body: "{}"
     });
   } catch {}
+
+  if (profileCardObjectUrl) {
+    URL.revokeObjectURL(profileCardObjectUrl);
+    profileCardObjectUrl = null;
+  }
 
   location.reload();
 });
