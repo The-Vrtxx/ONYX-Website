@@ -3,6 +3,7 @@ const API = "https://api.onyxdiscord.com";
 
 let catalog = [];
 let currentFilter = "all";
+let currentUser = null;
 
 const $ = id => document.getElementById(id);
 
@@ -34,6 +35,110 @@ function showMessage(text, error = false) {
   $("message").style.color = error
     ? "#ff9999"
     : "var(--teal)";
+}
+
+// PROFILE CARD PREVIEW
+
+function createProfilePreview() {
+  if ($("profile-preview-section")) return;
+
+  const section = document.createElement("section");
+  section.id = "profile-preview-section";
+  section.style.cssText = `
+    margin: 30px 0;
+    padding: 24px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 4px;
+  `;
+
+  const heading = document.createElement("div");
+  heading.innerHTML = `
+    <div class="eyebrow">YOUR ONYX IDENTITY</div>
+    <h2 style="margin:10px 0 6px">Profile Card Preview</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:18px">
+      See your current progression and equipped cosmetics.
+      Your preview updates when you equip an item.
+    </p>
+  `;
+
+  const canvasWrap = document.createElement("div");
+  canvasWrap.style.cssText = `
+    width:100%;
+    overflow:hidden;
+    background:#050b0e;
+    border:1px solid var(--line);
+    border-radius:5px;
+    padding:8px;
+  `;
+
+  const canvas = document.createElement("canvas");
+  canvas.id = "profile-card-canvas";
+  canvas.setAttribute("aria-label", "Your ONYX profile card preview");
+  canvas.style.cssText = `
+    display:block;
+    width:100%;
+    height:auto;
+  `;
+
+  canvasWrap.append(canvas);
+
+  const status = document.createElement("p");
+  status.id = "profile-preview-status";
+  status.style.cssText = `
+    color:var(--muted);
+    font-size:12px;
+    margin:12px 0 0;
+  `;
+  status.textContent = "Loading your profile...";
+
+  section.append(heading, canvasWrap, status);
+
+  const balance = $("shop-content").querySelector(".balance");
+  balance.insertAdjacentElement("afterend", section);
+}
+
+async function refreshProfilePreview() {
+  createProfilePreview();
+
+  const status = $("profile-preview-status");
+  const canvas = $("profile-card-canvas");
+
+  try {
+    const data = await api("/api/profile-card");
+
+    const profile = {
+      ...data.profile,
+      displayName:
+        currentUser?.username ||
+        data.profile?.displayName ||
+        "ONYX Member"
+    };
+
+    const cosmetics = data.cosmetics || {};
+
+    if (
+      !window.ONYXPreview ||
+      typeof window.ONYXPreview.renderCard !== "function"
+    ) {
+      throw new Error("Profile preview renderer unavailable.");
+    }
+
+    window.ONYXPreview.renderCard(
+      canvas,
+      profile,
+      cosmetics
+    );
+
+    status.textContent =
+      "Showing your current progression and equipped cosmetics.";
+
+  } catch (error) {
+    console.error("ONYX profile preview error:", error);
+
+    status.textContent =
+      "Your profile preview could not be loaded. Refresh the page to try again.";
+  }
 }
 
 // COSMETIC PREVIEW
@@ -75,7 +180,11 @@ function renderShopPreview(canvas, item) {
     ctx.fillStyle = "#ff9999";
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Preview error", canvas.width / 2, canvas.height / 2);
+    ctx.fillText(
+      "Preview error",
+      canvas.width / 2,
+      canvas.height / 2
+    );
   }
 }
 
@@ -90,7 +199,6 @@ function createItemCard(item) {
   const title = document.createElement("h2");
   title.textContent = item.name;
 
-  // Cosmetic preview
   const previewBox = document.createElement("div");
   previewBox.className = "shop-item-preview";
 
@@ -194,6 +302,7 @@ async function refreshShop() {
   $("tokens").textContent = data.tokens ?? 0;
 
   renderShop();
+  await refreshProfilePreview();
 }
 
 async function buyItem(category, item_id) {
@@ -246,6 +355,8 @@ async function startShop() {
   try {
     const user = await api("/api/me");
 
+    currentUser = user;
+
     $("login-panel").hidden = true;
     $("shop-content").hidden = false;
     $("account").hidden = false;
@@ -265,7 +376,9 @@ async function startShop() {
 
     await refreshShop();
 
-  } catch {
+  } catch (error) {
+    console.error("ONYX shop startup error:", error);
+
     $("login-panel").hidden = false;
     $("shop-content").hidden = true;
     $("account").hidden = true;
