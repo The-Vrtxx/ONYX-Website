@@ -1,30 +1,110 @@
+
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#05090b">
-  <meta name="description" content="ONYX — Discord server management, moderation, security and progression.">
+
+  <!-- ONYX BRANDING -->
+  <meta name="theme-color" content="#00dfe5">
+  <meta name="description" content="ONYX is an all-in-one Discord bot for moderation, server security, automation, global leveling, Prestige progression, and community management.">
+
+  <!-- DISCORD EMBED / OPEN GRAPH -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ONYX">
+  <meta property="og:title" content="ONYX — The Ultimate Discord Bot">
+  <meta property="og:description" content="Your server. Your rules. ONYX handles the rest. Moderation, security, automation, and global progression in one powerful Discord bot.">
+  <meta property="og:url" content="https://onyxdiscord.com/">
+  <meta property="og:image" content="https://onyxdiscord.com/assets/discord-preview.png">
+  <meta property="og:image:secure_url" content="https://onyxdiscord.com/assets/discord-preview.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <!-- TWITTER / X PREVIEW -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ONYX — The Ultimate Discord Bot">
+  <meta name="twitter:description" content="Your server. Your rules. ONYX handles the rest.">
+  <meta name="twitter:image" content="https://onyxdiscord.com/assets/discord-preview.png">
+
+  <!-- WEBSITE ICON -->
   <link rel="icon" type="image/png" href="/assets/onyx-mark.png">
-  <title>ONYX — Command your community</title>
+
+  <title>ONYX — The Ultimate Discord Bot</title>
+
   <link rel="stylesheet" href="/assets/styles.css">
+
   <style>
-    .live-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:36px auto 0;max-width:760px}
-    .live-stat{padding:22px 18px;border:1px solid #20383c;border-radius:15px;background:linear-gradient(145deg,#0d191d,#091114);text-align:center}
-    .live-stat-label{display:block;color:#9fb5b8;font-size:.78rem;letter-spacing:.13em;text-transform:uppercase}
-    .live-stat-value{display:block;margin-top:8px;color:#62dfd0;font-size:clamp(1.8rem,5vw,2.7rem);font-weight:800;line-height:1.1}
-    .live-stat-note{display:block;margin-top:7px;color:#83999d;font-size:.76rem}
-    .stats-updated{text-align:center;color:#81969a;font-size:.75rem;margin:10px 0 0}
-    @media(max-width:560px){.live-stats{gap:9px}.live-stat{padding:18px 10px}}
+    .live-stats {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 14px;
+      margin: 36px auto 0;
+      max-width: 760px;
+    }
+
+    .live-stat {
+      padding: 22px 18px;
+      border: 1px solid #20383c;
+      border-radius: 15px;
+      background: linear-gradient(145deg,#0d191d,#091114);
+      text-align: center;
+    }
+
+    .live-stat-label {
+      display: block;
+      color: #9fb5b8;
+      font-size: .78rem;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .live-stat-value {
+      display: block;
+      margin-top: 8px;
+      color: #62dfd0;
+      font-size: clamp(1.8rem,5vw,2.7rem);
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .live-stat-note {
+      display: block;
+      margin-top: 7px;
+      color: #83999d;
+      font-size: .76rem;
+    }
+
+    .stats-updated {
+      text-align: center;
+      color: #81969a;
+      font-size: .75rem;
+      margin: 10px 0 0;
+    }
+
+    @media(max-width:560px) {
+      .live-stats {
+        gap: 9px;
+      }
+
+      .live-stat {
+        padding: 18px 10px;
+      }
+    }
   </style>
 </head>
+
 <body>
+
 <header class="topbar">
   <a class="brand" href="/">
     <img class="brand-mark" src="/assets/onyx-mark.png" alt="">
     ONYX
   </a>
-  <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+
+  <button class="menu-toggle" type="button"
+    aria-label="Toggle navigation" aria-expanded="false">☰</button>
+
   <nav>
     <a class="active" href="/">HOME</a>
     <a href="/features">FEATURES</a>
@@ -34,86 +114,153 @@
     <a href="/support">SUPPORT</a>
     <a href="/terms">TERMS</a>
     <a href="/privacy">PRIVACY</a>
-    <a class="nav-cta" href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8" target="_blank" rel="noopener">AUTHORIZE ONYX ↗</a>
+    <a class="nav-cta"
+      href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8"
+      target="_blank" rel="noopener">AUTHORIZE ONYX ↗</a>
   </nav>
 </header>
+
 <main>
+
 <section class="hero wrap">
+
   <div class="eyebrow">● THE NEXT STANDARD IN SERVER MANAGEMENT</div>
+
   <h1>Command your<br><em>community.</em></h1>
-  <p class="lead">One powerful system for moderation, security, progression, and the tools that keep your Discord community moving.</p>
+
+  <p class="lead">
+    One powerful system for moderation, security, progression,
+    and the tools that keep your Discord community moving.
+  </p>
+
   <div class="actions">
-    <a class="button primary" href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8" target="_blank" rel="noopener">Authorize ONYX ↗</a>
+    <a class="button primary"
+      href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8"
+      target="_blank" rel="noopener">Authorize ONYX ↗</a>
+
     <a class="button" href="/features">Explore features →</a>
   </div>
+
   <div class="hero-art">
-    <img src="/assets/onyx-banner.png" alt="ONYX Discord bot branding banner">
+    <img src="/assets/onyx-banner.png"
+      alt="ONYX Discord bot branding banner">
   </div>
-  <div class="micro">MODERATION · SECURITY · GLOBAL PROGRESSION</div>
+
+  <div class="micro">
+    MODERATION · SECURITY · GLOBAL PROGRESSION
+  </div>
 
   <section class="live-stats" aria-label="Live ONYX statistics">
+
     <div class="live-stat">
       <span class="live-stat-label">Servers</span>
       <strong class="live-stat-value" id="onyx-server-count">—</strong>
       <span class="live-stat-note">Discord servers using ONYX</span>
     </div>
+
     <div class="live-stat">
       <span class="live-stat-label">Members</span>
       <strong class="live-stat-value" id="onyx-member-count">—</strong>
-      <span class="live-stat-note">Combined members across ONYX servers*</span>
+      <span class="live-stat-note">
+        Combined members across ONYX servers*
+      </span>
     </div>
+
   </section>
-  <p class="stats-updated" id="onyx-stats-updated">Loading live statistics…</p>
+
+  <p class="stats-updated" id="onyx-stats-updated">
+    Loading live statistics…
+  </p>
+
 </section>
 
 <section class="wrap section">
+
   <div class="eyebrow">BUILT AS A SYSTEM</div>
+
   <h2>Everything connected.<br><em>Nothing cluttered.</em></h2>
+
   <div class="cards">
+
     <a href="/features#moderation">
       <b>01 / MODERATION</b>
       <h3>Keep order.</h3>
-      <p>Practical tools to help staff manage conversations and community standards.</p>
+      <p>
+        Practical tools to help staff manage conversations
+        and community standards.
+      </p>
     </a>
+
     <a href="/features#security">
       <b>02 / SECURITY</b>
       <h3>Stay protected.</h3>
-      <p>Configurable safeguards, audit visibility, and tools for responding to abuse.</p>
+      <p>
+        Configurable safeguards, audit visibility,
+        and tools for responding to abuse.
+      </p>
     </a>
+
     <a href="/features#progression">
       <b>03 / PROGRESSION</b>
       <h3>Reward activity.</h3>
-      <p>Global leveling, Prestige milestones, collectible cosmetics, and profile cards.</p>
+      <p>
+        Global leveling, Prestige milestones,
+        collectible cosmetics, and profile cards.
+      </p>
     </a>
+
     <a href="/docs">
       <b>04 / DOCUMENTATION</b>
       <h3>Know every tool.</h3>
-      <p>Browse command syntax, setup steps, and practical guides for ONYX.</p>
+      <p>
+        Browse command syntax, setup steps,
+        and practical guides for ONYX.
+      </p>
     </a>
+
   </div>
 </section>
+
 <section class="statement">
   <div class="wrap">
+
     <div class="eyebrow">THE ONYX APPROACH</div>
+
     <h2>Powerful tools.<br><em>Clear control.</em></h2>
-    <p>Designed to give server owners and moderators useful capabilities without making everyday management feel complicated.</p>
+
+    <p>
+      Designed to give server owners and moderators useful
+      capabilities without making everyday management feel complicated.
+    </p>
+
   </div>
 </section>
+
 <section class="wrap section bottom-cta">
+
   <div>
     <div class="eyebrow">READY WHEN YOU ARE</div>
     <h2>Build a better<br><em>server experience.</em></h2>
   </div>
-  <a class="button primary" href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8" target="_blank" rel="noopener">Get ONYX ↗</a>
+
+  <a class="button primary"
+    href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8"
+    target="_blank" rel="noopener">Get ONYX ↗</a>
+
 </section>
+
 </main>
+
 <footer>
   <div class="wrap foot">
+
     <a class="brand" href="/">
       <img class="brand-mark" src="/assets/onyx-mark.png" alt="">
       ONYX
     </a>
+
     <span>© <span data-year></span> ONYX Development · Vrtx</span>
+
     <div>
       <a href="/features">Features</a>
       <a href="/docs">Documentation</a>
@@ -123,16 +270,25 @@
       <a href="/privacy">Privacy</a>
       <a href="/support">Support</a>
     </div>
+
   </div>
 </footer>
+
 <script>
-  const ONYX_STATS_API = "https://onyx-website-ai.onrender.com/api/stats";
+  const ONYX_STATS_API =
+    "https://onyx-website-ai.onrender.com/api/stats";
+
   const numberFormat = new Intl.NumberFormat("en-US");
 
   async function loadOnyxStats() {
-    const serverEl = document.getElementById("onyx-server-count");
-    const memberEl = document.getElementById("onyx-member-count");
-    const updatedEl = document.getElementById("onyx-stats-updated");
+    const serverEl =
+      document.getElementById("onyx-server-count");
+
+    const memberEl =
+      document.getElementById("onyx-member-count");
+
+    const updatedEl =
+      document.getElementById("onyx-stats-updated");
 
     try {
       const response = await fetch(ONYX_STATS_API, {
@@ -140,28 +296,52 @@
         headers: {"Accept": "application/json"},
         cache: "no-store"
       });
-      if (!response.ok) throw new Error("Stats API returned HTTP " + response.status);
+
+      if (!response.ok) {
+        throw new Error(
+          "Stats API returned HTTP " + response.status
+        );
+      }
+
       const data = await response.json();
 
-      serverEl.textContent = numberFormat.format(Number(data.servers || 0));
-      memberEl.textContent = numberFormat.format(Number(data.members || 0));
+      serverEl.textContent =
+        numberFormat.format(Number(data.servers || 0));
+
+      memberEl.textContent =
+        numberFormat.format(Number(data.members || 0));
 
       if (data.updated_at) {
         const updated = new Date(data.updated_at);
-        updatedEl.textContent = "*Combined server member count · Updated " +
-          updated.toLocaleTimeString([], {hour: "numeric", minute: "2-digit"});
+
+        updatedEl.textContent =
+          "*Combined server member count · Updated " +
+          updated.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit"
+          });
       } else {
-        updatedEl.textContent = "*Combined server member count · Waiting for bot sync";
+        updatedEl.textContent =
+          "*Combined server member count · Waiting for bot sync";
       }
+
     } catch (error) {
-      console.error("Unable to load ONYX live statistics:", error);
-      updatedEl.textContent = "Live statistics are temporarily unavailable.";
+      console.error(
+        "Unable to load ONYX live statistics:",
+        error
+      );
+
+      updatedEl.textContent =
+        "Live statistics are temporarily unavailable.";
     }
   }
 
   loadOnyxStats();
+
   window.setInterval(loadOnyxStats, 60000);
 </script>
+
 <script src="/assets/site.js"></script>
+
 </body>
 </html>
