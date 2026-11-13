@@ -50,28 +50,9 @@
     .asset-form-buttons{display:flex;gap:10px;flex-wrap:wrap;grid-column:1/-1}
     .asset-history{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
     .asset-empty{grid-column:1/-1;padding:24px;border:1px dashed var(--line);color:var(--muted);text-align:center}
-
-    /* ASSET PREVIEW */
-    .asset-preview{
-      margin:14px 0;
-      padding:12px;
-      border:1px solid var(--line);
-      background:#050b0e;
-      border-radius:8px;
-    }
-    .asset-preview canvas{
-      display:block;
-      width:100%;
-      max-width:420px;
-      height:auto;
-      margin:0 auto;
-    }
-    .asset-editor-preview{
-      margin-top:18px;
-      padding:16px;
-      border:1px solid var(--line);
-      background:#050b0e;
-    }
+    .asset-preview{margin:14px 0;padding:12px;border:1px solid var(--line);background:#050b0e;border-radius:8px}
+    .asset-preview canvas{display:block;width:100%;max-width:420px;height:auto;margin:0 auto}
+    .asset-editor-preview{margin-top:18px;padding:16px;border:1px solid var(--line);background:#050b0e}
     .asset-editor-preview h3{margin:0 0 12px}
     [hidden]{display:none!important}
     @media(max-width:650px){
@@ -213,8 +194,9 @@
     <div><a href="/features">Features</a><a href="/docs">Documentation</a><a href="/commands/">Commands</a><a href="/shop/">Prestige Shop</a><a href="/support">Support</a></div>
   </div>
 </footer>
-<script src="../assets/site.js"></script>
-<script src="../assets/preview.js"></script>
-<script src="../assets/owner.js"></script>
+
+<script src="../assets/site.js?v=2"></script>
+<script src="../assets/preview.js?v=2"></script>
+<script src="../assets/owner.js?v=2"></script>
 </body>
 </html>
