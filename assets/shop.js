@@ -36,6 +36,49 @@ function showMessage(text, error = false) {
     : "var(--teal)";
 }
 
+// COSMETIC PREVIEW
+
+function renderShopPreview(canvas, item) {
+  const preview = window.ONYXPreview;
+
+  if (!preview || typeof preview.renderAsset !== "function") {
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = 420;
+    canvas.height = 120;
+
+    ctx.fillStyle = "#091316";
+    ctx.fillRect(0, 0, 420, 120);
+
+    ctx.fillStyle = "#ff9999";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Preview unavailable", 210, 65);
+
+    return;
+  }
+
+  try {
+    preview.renderAsset(canvas, {
+      category: item.category,
+      item_id: item.id,
+      display_name: item.name,
+      image_url: item.image_url || null,
+      metadata: item.metadata || {}
+    });
+  } catch (error) {
+    console.error("ONYX shop preview error:", error);
+
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#091316";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#ff9999";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Preview error", canvas.width / 2, canvas.height / 2);
+  }
+}
+
 function createItemCard(item) {
   const card = document.createElement("article");
   card.className = "shop-item";
@@ -47,8 +90,23 @@ function createItemCard(item) {
   const title = document.createElement("h2");
   title.textContent = item.name;
 
+  // Cosmetic preview
+  const previewBox = document.createElement("div");
+  previewBox.className = "shop-item-preview";
+
+  const previewCanvas = document.createElement("canvas");
+  previewCanvas.width = 420;
+  previewCanvas.height = 300;
+  previewCanvas.setAttribute(
+    "aria-label",
+    "Preview of " + (item.name || "ONYX cosmetic")
+  );
+
+  previewBox.append(previewCanvas);
+  renderShopPreview(previewCanvas, item);
+
   const description = document.createElement("p");
-  description.textContent = item.description;
+  description.textContent = item.description || "";
 
   const meta = document.createElement("div");
   meta.className = "shop-meta";
@@ -57,7 +115,7 @@ function createItemCard(item) {
   cost.textContent = item.cost + " TOKENS";
 
   const rarity = document.createElement("span");
-  rarity.textContent = item.rarity;
+  rarity.textContent = item.rarity || "Common";
 
   meta.append(cost, rarity);
 
@@ -83,7 +141,14 @@ function createItemCard(item) {
     });
   }
 
-  card.append(category, title, description, meta, button);
+  card.append(
+    category,
+    title,
+    previewBox,
+    description,
+    meta,
+    button
+  );
 
   return card;
 }
