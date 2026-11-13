@@ -50,6 +50,71 @@ function setAssetMessage(message, isError) {
   el.className = isError ? "message error" : "message";
 }
 
+// PREVIEW ENGINE
+
+function previewAvailable() {
+  return !!(
+    window.ONYXPreview &&
+    typeof window.ONYXPreview.renderAsset === "function"
+  );
+}
+
+function renderAssetPreview(canvas, asset) {
+  if (!canvas) return;
+
+  if (!previewAvailable()) {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#091316";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#ff9999";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Preview engine unavailable", canvas.width / 2, canvas.height / 2);
+    return;
+  }
+
+  try {
+    window.ONYXPreview.renderAsset(canvas, asset || {});
+  } catch (error) {
+    console.error("ONYX asset preview error:", error);
+  }
+}
+
+function getEditorPreviewAsset() {
+  let metadata = {};
+
+  try {
+    metadata = JSON.parse($("asset-metadata").value || "{}");
+
+    if (
+      !metadata ||
+      Array.isArray(metadata) ||
+      typeof metadata !== "object"
+    ) {
+      metadata = {};
+    }
+  } catch (_) {
+    metadata = {};
+  }
+
+  return {
+    category: $("asset-category").value,
+    item_id: $("asset-item-id").value.trim(),
+    display_name: $("asset-display-name").value.trim() || "ONYX Asset",
+    description: $("asset-description").value.trim(),
+    image_url: $("asset-image-url").value.trim() || null,
+    metadata
+  };
+}
+
+function updateEditorPreview() {
+  const canvas = $("asset-editor-preview-canvas");
+  if (!canvas) return;
+
+  renderAssetPreview(canvas, getEditorPreviewAsset());
+}
+
 // ACCOUNT
 
 function avatarUrl(user) {
@@ -206,6 +271,23 @@ function renderAssets(assets) {
     top.append(info);
     card.append(top);
 
+    // Asset visual preview
+    const previewBox = document.createElement("div");
+    previewBox.className = "asset-preview";
+
+    const previewCanvas = document.createElement("canvas");
+    previewCanvas.width = 420;
+    previewCanvas.height = 300;
+    previewCanvas.setAttribute(
+      "aria-label",
+      "Preview of " + (asset.display_name || "ONYX asset")
+    );
+
+    previewBox.append(previewCanvas);
+    card.append(previewBox);
+
+    renderAssetPreview(previewCanvas, asset);
+
     if (asset.description) {
       const desc = document.createElement("p");
       desc.className = "asset-meta";
@@ -316,6 +398,8 @@ function resetAssetForm() {
     "Choose a permanent category and item ID. These cannot be changed after creation.";
 
   $("save-asset").textContent = "Create asset";
+
+  updateEditorPreview();
 }
 
 function openAssetEditor(asset) {
@@ -355,6 +439,9 @@ function openAssetEditor(asset) {
   }
 
   $("asset-editor").hidden = false;
+
+  // Render the initial preview after the editor is visible.
+  updateEditorPreview();
 
   $("asset-editor").scrollIntoView({
     behavior: "smooth",
@@ -499,7 +586,6 @@ async function saveAsset(event) {
     $("asset-editor").hidden = true;
     resetAssetForm();
 
-    // Refresh the catalog first so the new version is visible.
     const refreshed = await loadAssets(false);
 
     if (!refreshed) {
@@ -508,17 +594,14 @@ async function saveAsset(event) {
       );
     }
 
-    // Show the saved version number after refreshing.
     setAssetMessage(
       "SUCCESS! " + savedAsset.display_name +
       " was saved as VERSION " + savedVersion + ".",
       false
     );
 
-    // Automatically load the saved version history.
     await loadAssetHistory(savedAssetId);
 
-    // Scroll to the updated asset's version history.
     const historyBox = $(historyElementId(savedAssetId));
 
     if (historyBox) {
@@ -645,6 +728,21 @@ $("refresh-assets").addEventListener("click", () => loadAssets());
 
 $("asset-category-filter").addEventListener("change", () => loadAssets());
 $("asset-status-filter").addEventListener("change", () => loadAssets());
+
+// Live preview updates
+[
+  "asset-category",
+  "asset-item-id",
+  "asset-display-name",
+  "asset-description",
+  "asset-image-url",
+  "asset-metadata"
+].forEach(id => {
+  const field = $(id);
+
+  field.addEventListener("input", updateEditorPreview);
+  field.addEventListener("change", updateEditorPreview);
+});
 
 // LOGOUT
 
