@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,6 +33,22 @@
 .login-panel{text-align:center;padding:45px 25px;margin:40px 0;border:1px solid var(--line);background:var(--panel)}
 .login-panel p{color:var(--muted)}
 .empty{grid-column:1/-1;text-align:center;padding:35px;color:var(--muted);border:1px dashed var(--line)}
+
+/* COSMETIC PREVIEWS */
+.shop-item-preview{
+  margin:14px 0;
+  padding:8px;
+  border:1px solid var(--line);
+  background:#050b0e;
+  border-radius:5px;
+}
+.shop-item-preview canvas{
+  display:block;
+  width:100%;
+  max-width:420px;
+  height:auto;
+  margin:0 auto;
+}
 @media(max-width:800px){.shop-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.shop-grid{grid-template-columns:1fr}}
 </style>
@@ -148,8 +165,9 @@
   </div>
 </footer>
 
-<script src="../assets/site.js"></script>
-<script src="../assets/shop.js"></script>
+<script src="../assets/site.js?v=2"></script>
+<script src="../assets/preview.js?v=2"></script>
+<script src="../assets/shop.js?v=2"></script>
 
 </body>
 </html>
