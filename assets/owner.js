@@ -577,6 +577,144 @@ function openAssetEditor(asset) {
   });
 }
 
+// BULK IMPORT: EXISTING PRESTIGE EMBLEMS FROM THE BOT REPOSITORY
+
+const EXISTING_PRESTIGE_EMBLEMS = [
+  ...Array.from({length: 11}, (_, level) => ({
+    item_id: "prestige_" + level,
+    display_name: "Prestige " + level,
+    filename: "prestige_" + level + ".PNG",
+    sort_order: level,
+    level
+  })),
+  {
+    item_id: "prestige_master",
+    display_name: "Prestige Master",
+    filename: "prestige_master.PNG",
+    sort_order: 11,
+    level: "master"
+  }
+];
+
+async function importExistingPrestigeEmblems() {
+  const button = $("import-prestige-emblems");
+  if (!button) return;
+
+  if (!window.confirm(
+    "Import the 12 existing prestige emblem images from ONYX-Bot? Existing catalog entries with artwork will be skipped."
+  )) return;
+
+  button.disabled = true;
+  let imported = 0;
+  let skipped = 0;
+  const failed = [];
+
+  try {
+    setAssetMessage("Checking the Prestige Emblem catalog…", false);
+
+    const existingData = await api(
+      "/api/owner/assets?category=prestige_emblem"
+    );
+
+    const existingByItemId = new Map(
+      (existingData.assets || []).map(asset => [asset.item_id, asset])
+    );
+
+    for (const emblem of EXISTING_PRESTIGE_EMBLEMS) {
+      try {
+        let asset = existingByItemId.get(emblem.item_id);
+
+        if (asset && asset.image_url) {
+          skipped++;
+          continue;
+        }
+
+        if (!asset) {
+          setAssetMessage(
+            "Creating catalog entry: " + emblem.display_name + "…",
+            false
+          );
+
+          const created = await api("/api/owner/assets", {
+            method: "POST",
+            body: JSON.stringify({
+              category: "prestige_emblem",
+              item_id: emblem.item_id,
+              display_name: emblem.display_name,
+              description: "Official ONYX " + emblem.display_name + " emblem.",
+              price_tokens: 0,
+              rarity: "Common",
+              image_url: null,
+              sort_order: emblem.sort_order,
+              is_active: true,
+              is_shop_item: false,
+              metadata: {
+                prestige_level: emblem.level,
+                source: "ONYX-Bot/assets/onyx_prestige"
+              }
+            })
+          });
+
+          asset = created.asset;
+          existingByItemId.set(emblem.item_id, asset);
+        }
+
+        setAssetMessage(
+          "Importing artwork: " + emblem.display_name + "…",
+          false
+        );
+
+        const imageUrl =
+          "https://raw.githubusercontent.com/The-Vrtxx/ONYX-Bot/main/assets/onyx_prestige/" +
+          encodeURIComponent(emblem.filename);
+
+        const imageResponse = await fetch(imageUrl);
+
+        if (!imageResponse.ok) {
+          throw new Error("GitHub image download failed (" + imageResponse.status + ").");
+        }
+
+        const blob = await imageResponse.blob();
+
+        if (!blob.size || blob.size > 5 * 1024 * 1024) {
+          throw new Error("Image is empty or exceeds the 5 MB upload limit.");
+        }
+
+        const file = new File(
+          [blob],
+          emblem.filename,
+          {type: blob.type || "image/png"}
+        );
+
+        const uploaded = await uploadAssetImage(asset.asset_id, file);
+        existingByItemId.set(emblem.item_id, uploaded.asset);
+        imported++;
+
+      } catch (error) {
+        failed.push(emblem.display_name + ": " + error.message);
+      }
+    }
+
+    await loadAssets(false);
+
+    const summary =
+      "Prestige emblem import finished: " +
+      imported + " artwork files imported, " +
+      skipped + " already-existing entries skipped, " +
+      failed.length + " failed.";
+
+    setAssetMessage(
+      failed.length ? summary + " " + failed.join(" | ") : summary,
+      failed.length > 0
+    );
+
+  } catch (error) {
+    setAssetMessage("Prestige emblem import failed: " + error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
 // VERSION HISTORY
 
 async function loadAssetHistory(assetId) {
@@ -886,6 +1024,7 @@ $("cancel-asset-edit").addEventListener("click", () => {
 });
 
 $("refresh-assets").addEventListener("click", () => loadAssets());
+$("import-prestige-emblems").addEventListener("click", importExistingPrestigeEmblems);
 
 $("asset-category-filter").addEventListener("change", () => loadAssets());
 $("asset-status-filter").addEventListener("change", () => loadAssets());
