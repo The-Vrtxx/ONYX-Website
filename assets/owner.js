@@ -800,10 +800,16 @@ async function saveAsset(event) {
     description: $("asset-description").value.trim(),
     price_tokens: Number($("asset-price").value),
     rarity: $("asset-rarity").value,
+
+    // IMPORTANT FIX:
+    // When editing an existing asset, omit image_url unless
+    // the owner entered a new external URL. This preserves the
+    // existing database image URL without sending an invalid
+    // relative URL back to the API.
     image_url:
       $("asset-image-url").value.trim() ||
-      currentAssetImageUrl ||
-      null,
+      (editingAssetId ? undefined : null),
+
     sort_order: Number($("asset-sort-order").value),
     is_active: $("asset-active").checked,
     is_shop_item: $("asset-shop-item").checked,
