@@ -5,10 +5,10 @@ const numberFormat = new Intl.NumberFormat("en-US");
 
 let currentAssets = [];
 let editingAssetId = null;
+let selectedImageFile = null;
+let previewObjectUrl = null;
 
-async function api(path, options) {
-  options = options || {};
-
+async function api(path, options = {}) {
   const response = await fetch(API + path, {
     method: options.method || "GET",
     credentials: "include",
@@ -37,7 +37,6 @@ async function api(path, options) {
 function setMessage(message, isError) {
   const el = $("team-message");
   if (!el) return;
-
   el.textContent = message || "";
   el.className = isError ? "message error" : "message";
 }
@@ -45,9 +44,128 @@ function setMessage(message, isError) {
 function setAssetMessage(message, isError) {
   const el = $("asset-message");
   if (!el) return;
-
   el.textContent = message || "";
   el.className = isError ? "message error" : "message";
+}
+
+function setUploadMessage(message, isError = false) {
+  const el = $("asset-upload-message");
+  if (!el) return;
+  el.textContent = message || "";
+  el.className = isError ? "message error" : "message";
+}
+
+// IMAGE HELPERS
+
+function clearSelectedImage() {
+  selectedImageFile = null;
+
+  if (previewObjectUrl) {
+    URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = null;
+  }
+
+  const input = $("asset-image-file");
+  if (input) input.value = "";
+
+  const name = $("asset-selected-file");
+  if (name) name.textContent = "No file selected.";
+
+  setUploadMessage("");
+}
+
+function normalizeImageUrl(url) {
+  if (!url) return null;
+
+  if (url.startsWith("/")) {
+    return API + url;
+  }
+
+  return url;
+}
+
+async function uploadAssetImage(assetId, file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(
+    API + "/api/owner/assets/" +
+    encodeURIComponent(assetId) +
+    "/upload",
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Accept": "application/json"
+      },
+      body: formData
+    }
+  );
+
+  let data = {};
+  try {
+    data = await response.json();
+  } catch (_) {}
+
+  if (!response.ok) {
+    throw new Error(data.error || "Image upload failed.");
+  }
+
+  return data;
+}
+
+function handleImageSelection() {
+  const input = $("asset-image-file");
+  const file = input.files && input.files[0];
+
+  if (!file) {
+    clearSelectedImage();
+    updateEditorPreview();
+    return;
+  }
+
+  const allowedTypes = [
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "image/gif"
+  ];
+
+  if (!allowedTypes.includes(file.type)) {
+    input.value = "";
+    setUploadMessage(
+      "Unsupported file. Choose PNG, JPG, WEBP, or GIF.",
+      true
+    );
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    input.value = "";
+    setUploadMessage(
+      "That image is too large. The maximum size is 5 MB.",
+      true
+    );
+    return;
+  }
+
+  if (previewObjectUrl) {
+    URL.revokeObjectURL(previewObjectUrl);
+  }
+
+  selectedImageFile = file;
+  previewObjectUrl = URL.createObjectURL(file);
+
+  $("asset-selected-file").textContent =
+    file.name + " · " +
+    (file.size / 1024).toFixed(0) + " KB";
+
+  setUploadMessage(
+    "Image ready. Save the asset to upload this file.",
+    false
+  );
+
+  updateEditorPreview();
 }
 
 // PREVIEW ENGINE
@@ -70,12 +188,22 @@ function renderAssetPreview(canvas, asset) {
     ctx.fillStyle = "#ff9999";
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Preview engine unavailable", canvas.width / 2, canvas.height / 2);
+    ctx.fillText(
+      "Preview engine unavailable",
+      canvas.width / 2,
+      canvas.height / 2
+    );
     return;
   }
 
   try {
-    window.ONYXPreview.renderAsset(canvas, asset || {});
+    const previewAsset = Object.assign({}, asset || {});
+
+    previewAsset.image_url = normalizeImageUrl(
+      previewAsset.image_url
+    );
+
+    window.ONYXPreview.renderAsset(canvas, previewAsset);
   } catch (error) {
     console.error("ONYX asset preview error:", error);
   }
@@ -103,7 +231,10 @@ function getEditorPreviewAsset() {
     item_id: $("asset-item-id").value.trim(),
     display_name: $("asset-display-name").value.trim() || "ONYX Asset",
     description: $("asset-description").value.trim(),
-    image_url: $("asset-image-url").value.trim() || null,
+    image_url:
+      previewObjectUrl ||
+      $("asset-image-url").value.trim() ||
+      null,
     metadata
   };
 }
@@ -111,7 +242,6 @@ function getEditorPreviewAsset() {
 function updateEditorPreview() {
   const canvas = $("asset-editor-preview-canvas");
   if (!canvas) return;
-
   renderAssetPreview(canvas, getEditorPreviewAsset());
 }
 
@@ -228,7 +358,6 @@ function renderAssets(assets) {
     empty.className = "asset-empty";
     empty.textContent =
       "No assets match these filters. Create an asset to start your library.";
-
     list.append(empty);
     return;
   }
@@ -271,7 +400,6 @@ function renderAssets(assets) {
     top.append(info);
     card.append(top);
 
-    // Asset visual preview
     const previewBox = document.createElement("div");
     previewBox.className = "asset-preview";
 
@@ -300,7 +428,7 @@ function renderAssets(assets) {
 
     const edit = document.createElement("button");
     edit.type = "button";
-    edit.textContent = "Edit";
+    edit.textContent = "Edit / Upgrade";
     edit.addEventListener("click", () => openAssetEditor(asset));
 
     const history = document.createElement("button");
@@ -332,17 +460,9 @@ async function loadAssets(showMessage = true) {
 
   const params = new URLSearchParams();
 
-  if (category) {
-    params.set("category", category);
-  }
-
-  if (status === "active") {
-    params.set("active", "true");
-  }
-
-  if (status === "inactive") {
-    params.set("active", "false");
-  }
+  if (category) params.set("category", category);
+  if (status === "active") params.set("active", "true");
+  if (status === "inactive") params.set("active", "false");
 
   try {
     const data = await api(
@@ -351,7 +471,6 @@ async function loadAssets(showMessage = true) {
     );
 
     currentAssets = data.assets || [];
-
     renderAssets(currentAssets);
 
     if (showMessage) {
@@ -373,6 +492,7 @@ async function loadAssets(showMessage = true) {
 // ASSET EDITOR
 
 function resetAssetForm() {
+  clearSelectedImage();
   $("asset-form").reset();
 
   $("asset-category").disabled = false;
@@ -418,7 +538,11 @@ function openAssetEditor(asset) {
     $("asset-description").value = asset.description || "";
     $("asset-price").value = asset.price_tokens || 0;
     $("asset-rarity").value = asset.rarity || "Common";
-    $("asset-image-url").value = asset.image_url || "";
+    $("asset-image-url").value =
+      asset.image_url && !asset.image_url.startsWith("/api/assets/media/")
+        ? asset.image_url
+        : "";
+
     $("asset-sort-order").value = asset.sort_order || 0;
 
     $("asset-active").checked = !!asset.is_active;
@@ -430,17 +554,15 @@ function openAssetEditor(asset) {
     $("asset-editor-eyebrow").textContent =
       "EDITING " + asset.asset_id.toUpperCase();
 
-    $("asset-editor-title").textContent = "Edit asset";
+    $("asset-editor-title").textContent = "Edit / Upgrade asset";
 
     $("asset-editor-help").textContent =
-      "The permanent asset ID is locked to protect existing ownership records.";
+      "The permanent asset ID is locked. You can update the artwork and details without changing existing ownership.";
 
     $("save-asset").textContent = "Save changes";
   }
 
   $("asset-editor").hidden = false;
-
-  // Render the initial preview after the editor is visible.
   updateEditorPreview();
 
   $("asset-editor").scrollIntoView({
@@ -501,7 +623,6 @@ async function loadAssetHistory(assetId) {
   } catch (error) {
     box.textContent =
       "Could not load version history: " + error.message;
-
     throw error;
   }
 }
@@ -524,10 +645,7 @@ async function saveAsset(event) {
       throw new Error("Metadata must be a JSON object.");
     }
   } catch (error) {
-    setAssetMessage(
-      "Metadata error: " + error.message,
-      true
-    );
+    setAssetMessage("Metadata error: " + error.message, true);
     return;
   }
 
@@ -547,6 +665,8 @@ async function saveAsset(event) {
   };
 
   const wasEditing = Boolean(editingAssetId);
+  const existingAssetId = editingAssetId;
+  const fileToUpload = selectedImageFile;
   const button = $("save-asset");
 
   button.disabled = true;
@@ -561,7 +681,6 @@ async function saveAsset(event) {
 
     if (editingAssetId) {
       const update = Object.assign({}, payload);
-
       delete update.category;
       delete update.item_id;
 
@@ -579,8 +698,21 @@ async function saveAsset(event) {
       });
     }
 
-    const savedAsset = result.asset;
+    let savedAsset = result.asset;
     const savedAssetId = savedAsset.asset_id;
+
+    if (fileToUpload) {
+      setAssetMessage("Uploading image to ONYX storage…", false);
+      setUploadMessage("Uploading " + fileToUpload.name + "…");
+
+      const uploadResult = await uploadAssetImage(
+        savedAssetId,
+        fileToUpload
+      );
+
+      savedAsset = uploadResult.asset;
+    }
+
     const savedVersion = savedAsset.version;
 
     $("asset-editor").hidden = true;
@@ -596,7 +728,8 @@ async function saveAsset(event) {
 
     setAssetMessage(
       "SUCCESS! " + savedAsset.display_name +
-      " was saved as VERSION " + savedVersion + ".",
+      " was saved as VERSION " + savedVersion +
+      (fileToUpload ? " with its new image." : "."),
       false
     );
 
@@ -616,6 +749,13 @@ async function saveAsset(event) {
       "SAVE FAILED: " + error.message,
       true
     );
+
+    if (fileToUpload) {
+      setUploadMessage(
+        "The image may not have uploaded. Check the asset and try again.",
+        true
+      );
+    }
   } finally {
     button.disabled = false;
   }
@@ -680,7 +820,6 @@ async function startPortal() {
     const message = document.createElement("p");
     message.className = "message error";
     message.textContent = error.message;
-
     login.append(message);
   }
 }
@@ -702,9 +841,7 @@ $("add-form").addEventListener("submit", async event => {
     });
 
     input.value = "";
-
     setMessage(result.message, false);
-
     await loadTeam();
 
   } catch (error) {
@@ -728,6 +865,11 @@ $("refresh-assets").addEventListener("click", () => loadAssets());
 
 $("asset-category-filter").addEventListener("change", () => loadAssets());
 $("asset-status-filter").addEventListener("change", () => loadAssets());
+
+$("asset-image-file").addEventListener(
+  "change",
+  handleImageSelection
+);
 
 // Live preview updates
 [
