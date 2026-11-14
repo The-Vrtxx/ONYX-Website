@@ -8,6 +8,17 @@ let profileCardObjectUrl = null;
 
 const $ = id => document.getElementById(id);
 
+const CATEGORY_NAMES = {
+  frame: "Frames",
+  theme: "Themes",
+  background: "Backgrounds",
+  emblem: "Emblems",
+  effect: "Effects",
+  badge: "Badges",
+  title: "Titles",
+  event: "Seasonal Collectibles"
+};
+
 async function api(path, options = {}) {
   const response = await fetch(API + path, {
     ...options,
@@ -32,8 +43,12 @@ async function api(path, options = {}) {
 }
 
 function showMessage(text, error = false) {
-  $("message").textContent = text;
-  $("message").style.color = error
+  const message = $("message");
+
+  if (!message) return;
+
+  message.textContent = text;
+  message.style.color = error
     ? "#ff9999"
     : "var(--teal)";
 }
@@ -54,6 +69,7 @@ function createProfilePreview() {
   `;
 
   const heading = document.createElement("div");
+
   heading.innerHTML = `
     <div class="eyebrow">YOUR ONYX IDENTITY</div>
     <h2 style="margin:10px 0 6px">Profile Card Preview</h2>
@@ -65,6 +81,7 @@ function createProfilePreview() {
   `;
 
   const imageWrap = document.createElement("div");
+
   imageWrap.style.cssText = `
     width:100%;
     overflow:hidden;
@@ -77,6 +94,7 @@ function createProfilePreview() {
   const image = document.createElement("img");
   image.id = "profile-card-image";
   image.alt = "Your ONYX profile card";
+
   image.style.cssText = `
     display:block;
     width:100%;
@@ -87,16 +105,19 @@ function createProfilePreview() {
 
   const status = document.createElement("p");
   status.id = "profile-preview-status";
+
   status.style.cssText = `
     color:var(--muted);
     font-size:12px;
     margin:12px 0 0;
   `;
+
   status.textContent = "Loading your profile...";
 
   section.append(heading, imageWrap, status);
 
   const balance = $("shop-content").querySelector(".balance");
+
   balance.insertAdjacentElement("afterend", section);
 }
 
@@ -123,21 +144,29 @@ async function refreshProfilePreview() {
 
     if (!response.ok) {
       let message = "Your profile card could not be loaded.";
+
       try {
         const data = await response.json();
-        if (data.error) message = data.error;
+
+        if (data.error) {
+          message = data.error;
+        }
       } catch {}
+
       throw new Error(message);
     }
 
     const blob = await response.blob();
 
     if (!blob.type.includes("image/png")) {
-      throw new Error("The profile card endpoint did not return a PNG image.");
+      throw new Error(
+        "The profile card endpoint did not return a PNG image."
+      );
     }
 
     const nextObjectUrl = URL.createObjectURL(blob);
     const previousObjectUrl = profileCardObjectUrl;
+
     profileCardObjectUrl = nextObjectUrl;
 
     image.onload = () => {
@@ -148,13 +177,17 @@ async function refreshProfilePreview() {
 
     image.onerror = () => {
       URL.revokeObjectURL(nextObjectUrl);
+
       if (profileCardObjectUrl === nextObjectUrl) {
         profileCardObjectUrl = null;
       }
-      status.textContent = "The profile card image could not be displayed.";
+
+      status.textContent =
+        "The profile card image could not be displayed.";
     };
 
     image.src = nextObjectUrl;
+
     status.textContent =
       "Showing your actual ONYX profile card and current equipped cosmetics.";
 
@@ -197,15 +230,19 @@ function renderShopPreview(canvas, item) {
       image_url: item.image_url || null,
       metadata: item.metadata || {}
     });
+
   } catch (error) {
     console.error("ONYX shop preview error:", error);
 
     const ctx = canvas.getContext("2d");
+
     ctx.fillStyle = "#091316";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     ctx.fillStyle = "#ff9999";
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
+
     ctx.fillText(
       "Preview error",
       canvas.width / 2,
@@ -214,29 +251,36 @@ function renderShopPreview(canvas, item) {
   }
 }
 
+// ITEM CARD
+
 function createItemCard(item) {
   const card = document.createElement("article");
   card.className = "shop-item";
 
   const category = document.createElement("div");
   category.className = "category";
-  category.textContent = item.category;
+
+  category.textContent =
+    CATEGORY_NAMES[item.category] || item.category;
 
   const title = document.createElement("h2");
-  title.textContent = item.name;
+  title.textContent = item.name || "ONYX Cosmetic";
 
   const previewBox = document.createElement("div");
   previewBox.className = "shop-item-preview";
 
   const previewCanvas = document.createElement("canvas");
+
   previewCanvas.width = 420;
   previewCanvas.height = 300;
+
   previewCanvas.setAttribute(
     "aria-label",
     "Preview of " + (item.name || "ONYX cosmetic")
   );
 
   previewBox.append(previewCanvas);
+
   renderShopPreview(previewCanvas, item);
 
   const description = document.createElement("p");
@@ -246,7 +290,8 @@ function createItemCard(item) {
   meta.className = "shop-meta";
 
   const cost = document.createElement("span");
-  cost.textContent = item.cost + " TOKENS";
+  cost.textContent =
+    Number(item.cost || 0).toLocaleString() + " TOKENS";
 
   const rarity = document.createElement("span");
   rarity.textContent = item.rarity || "Common";
@@ -255,16 +300,35 @@ function createItemCard(item) {
 
   const button = document.createElement("button");
 
-  if (item.owned) {
+  const isCollectible =
+    item.collectible === true ||
+    item.category === "event";
+
+  if (isCollectible) {
+    if (item.owned) {
+      button.textContent = "Collected";
+      button.disabled = true;
+    } else {
+      button.className = "buy";
+      button.textContent = "Collect";
+
+      button.addEventListener("click", () => {
+        buyItem(item.category, item.id);
+      });
+    }
+
+  } else if (item.owned) {
     button.textContent = item.equipped
       ? "Equipped"
       : "Equip";
 
     button.disabled = !!item.equipped;
 
-    button.addEventListener("click", () => {
-      equipItem(item.category, item.id);
-    });
+    if (!item.equipped) {
+      button.addEventListener("click", () => {
+        equipItem(item.category, item.id);
+      });
+    }
 
   } else {
     button.className = "buy";
@@ -287,13 +351,30 @@ function createItemCard(item) {
   return card;
 }
 
+// SHOP FILTERING
+
+function updateFilterButtons() {
+  const filters = $("filters");
+
+  if (!filters) return;
+
+  filters.querySelectorAll("button[data-filter]").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.dataset.filter === currentFilter
+    );
+  });
+}
+
 function renderShop() {
   const owned = catalog.filter(item => item.owned);
 
   $("owned-count").textContent = owned.length;
 
   const filtered = catalog.filter(item => {
-    if (currentFilter === "all") return true;
+    if (currentFilter === "all") {
+      return true;
+    }
 
     if (currentFilter === "owned") {
       return item.owned;
@@ -308,8 +389,16 @@ function renderShop() {
 
   if (!filtered.length) {
     const empty = document.createElement("div");
+
     empty.className = "empty";
-    empty.textContent = "No items in this category yet.";
+
+    if (currentFilter === "owned") {
+      empty.textContent =
+        "You haven't collected any shop items yet.";
+    } else {
+      empty.textContent =
+        "No items in this category yet.";
+    }
 
     grid.append(empty);
     return;
@@ -320,19 +409,42 @@ function renderShop() {
   });
 }
 
+// REFRESH SHOP
+
 async function refreshShop() {
   const data = await api("/api/shop");
 
-  catalog = data.items || [];
+  catalog = Array.isArray(data.items)
+    ? data.items
+    : [];
 
-  $("tokens").textContent = data.tokens ?? 0;
+  $("tokens").textContent =
+    Number(data.tokens || 0).toLocaleString();
 
   renderShop();
   await refreshProfilePreview();
 }
 
+// PURCHASE
+
 async function buyItem(category, item_id) {
-  if (!confirm("Unlock this cosmetic with Prestige Tokens?")) {
+  const item = catalog.find(entry =>
+    entry.category === category &&
+    entry.id === item_id
+  );
+
+  if (!item) {
+    showMessage("That shop item could not be found.", true);
+    return;
+  }
+
+  const action = item.collectible || category === "event"
+    ? "Collect"
+    : "Unlock";
+
+  if (!confirm(
+    `${action} ${item.name} with Prestige Tokens?`
+  )) {
     return;
   }
 
@@ -356,7 +468,17 @@ async function buyItem(category, item_id) {
   }
 }
 
+// EQUIP
+
 async function equipItem(category, item_id) {
+  if (category === "event" || category === "achievement") {
+    showMessage(
+      "This item is collectible and cannot be equipped.",
+      true
+    );
+    return;
+  }
+
   showMessage("Updating your profile...");
 
   try {
@@ -376,6 +498,8 @@ async function equipItem(category, item_id) {
     showMessage(error.message, true);
   }
 }
+
+// STARTUP
 
 async function startShop() {
   try {
@@ -411,6 +535,8 @@ async function startShop() {
   }
 }
 
+// FILTER BUTTONS
+
 $("filters").addEventListener("click", event => {
   const button = event.target.closest("button[data-filter]");
 
@@ -418,14 +544,11 @@ $("filters").addEventListener("click", event => {
 
   currentFilter = button.dataset.filter;
 
-  $("filters")
-    .querySelectorAll("button")
-    .forEach(item => {
-      item.classList.toggle("active", item === button);
-    });
-
+  updateFilterButtons();
   renderShop();
 });
+
+// LOGOUT
 
 $("logout").addEventListener("click", async () => {
   try {
