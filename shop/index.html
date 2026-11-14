@@ -49,8 +49,30 @@
   height:auto;
   margin:0 auto;
 }
+
+/* CATEGORY FILTERS */
+.shop-toolbar button{
+  transition:background .18s ease,border-color .18s ease,color .18s ease;
+}
+.shop-toolbar button:hover{
+  border-color:var(--teal);
+}
+.shop-toolbar button:focus-visible{
+  outline:2px solid var(--teal);
+  outline-offset:3px;
+}
+.shop-section-label{
+  color:var(--muted);
+  font:10px 'DM Mono',monospace;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  margin:28px 0 10px;
+}
 @media(max-width:800px){.shop-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:560px){.shop-grid{grid-template-columns:1fr}}
+@media(max-width:560px){
+  .shop-grid{grid-template-columns:1fr}
+  .shop-toolbar button{flex:1 1 auto}
+}
 </style>
 </head>
 
@@ -84,7 +106,8 @@
       <h1>Prestige <em>Shop.</em></h1>
       <p class="shop-description">
         Unlock exclusive profile cosmetics using Prestige Tokens
-        earned through your ONYX progression.
+        earned through your ONYX progression. Customize your identity
+        with frames, backgrounds, titles, badges, effects, and more.
       </p>
     </div>
 
@@ -122,16 +145,24 @@
       </div>
     </div>
 
+    <section id="profile-preview-section-placeholder"></section>
+
     <div id="message" class="shop-message"
          role="status" aria-live="polite"></div>
 
-    <div class="shop-toolbar" id="filters">
-      <button class="active" data-filter="all">All Items</button>
-      <button data-filter="frame">Frames</button>
-      <button data-filter="theme">Themes</button>
-      <button data-filter="emblem">Emblems</button>
-      <button data-filter="effect">Effects</button>
-      <button data-filter="owned">My Inventory</button>
+    <div class="shop-section-label">Browse the collection</div>
+
+    <div class="shop-toolbar" id="filters" aria-label="Shop categories">
+      <button class="active" data-filter="all" type="button">All Items</button>
+      <button data-filter="frame" type="button">Frames</button>
+      <button data-filter="theme" type="button">Themes</button>
+      <button data-filter="background" type="button">Backgrounds</button>
+      <button data-filter="emblem" type="button">Emblems</button>
+      <button data-filter="effect" type="button">Effects</button>
+      <button data-filter="badge" type="button">Badges</button>
+      <button data-filter="title" type="button">Titles</button>
+      <button data-filter="event" type="button">Seasonal</button>
+      <button data-filter="owned" type="button">My Inventory</button>
     </div>
 
     <div id="shop-grid" class="shop-grid">
