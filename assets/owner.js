@@ -7,6 +7,7 @@ let currentAssets = [];
 let editingAssetId = null;
 let selectedImageFile = null;
 let previewObjectUrl = null;
+let currentAssetImageUrl = null;
 
 async function api(path, options = {}) {
   const response = await fetch(API + path, {
@@ -132,20 +133,22 @@ function handleImageSelection() {
   ];
 
   if (!allowedTypes.includes(file.type)) {
-    input.value = "";
+    clearSelectedImage();
     setUploadMessage(
       "Unsupported file. Choose PNG, JPG, WEBP, or GIF.",
       true
     );
+    updateEditorPreview();
     return;
   }
 
   if (file.size > 5 * 1024 * 1024) {
-    input.value = "";
+    clearSelectedImage();
     setUploadMessage(
       "That image is too large. The maximum size is 5 MB.",
       true
     );
+    updateEditorPreview();
     return;
   }
 
@@ -234,6 +237,7 @@ function getEditorPreviewAsset() {
     image_url:
       previewObjectUrl ||
       $("asset-image-url").value.trim() ||
+      currentAssetImageUrl ||
       null,
     metadata
   };
@@ -510,6 +514,7 @@ function resetAssetForm() {
   $("asset-history").textContent = "";
 
   editingAssetId = null;
+  currentAssetImageUrl = null;
 
   $("asset-editor-eyebrow").textContent = "NEW CATALOG ITEM";
   $("asset-editor-title").textContent = "Create asset";
@@ -527,6 +532,7 @@ function openAssetEditor(asset) {
 
   if (asset) {
     editingAssetId = asset.asset_id;
+    currentAssetImageUrl = asset.image_url || null;
 
     $("asset-category").value = asset.category;
     $("asset-item-id").value = asset.item_id;
@@ -656,7 +662,10 @@ async function saveAsset(event) {
     description: $("asset-description").value.trim(),
     price_tokens: Number($("asset-price").value),
     rarity: $("asset-rarity").value,
-    image_url: $("asset-image-url").value.trim() || null,
+    image_url:
+      $("asset-image-url").value.trim() ||
+      currentAssetImageUrl ||
+      null,
     sort_order: Number($("asset-sort-order").value),
     is_active: $("asset-active").checked,
     is_shop_item: $("asset-shop-item").checked,
@@ -665,7 +674,6 @@ async function saveAsset(event) {
   };
 
   const wasEditing = Boolean(editingAssetId);
-  const existingAssetId = editingAssetId;
   const fileToUpload = selectedImageFile;
   const button = $("save-asset");
 
@@ -701,6 +709,19 @@ async function saveAsset(event) {
     let savedAsset = result.asset;
     const savedAssetId = savedAsset.asset_id;
 
+    // Prevent duplicate creation if the first image upload fails.
+    if (!wasEditing) {
+      editingAssetId = savedAssetId;
+      $("asset-category").disabled = true;
+      $("asset-item-id").disabled = true;
+      $("asset-editor-eyebrow").textContent =
+        "EDITING " + savedAssetId.toUpperCase();
+      $("asset-editor-title").textContent = "Edit / Upgrade asset";
+      $("asset-editor-help").textContent =
+        "The permanent asset ID is locked. You can update the artwork and details without changing existing ownership.";
+      $("save-asset").textContent = "Save changes";
+    }
+
     if (fileToUpload) {
       setAssetMessage("Uploading image to ONYX storage…", false);
       setUploadMessage("Uploading " + fileToUpload.name + "…");
@@ -711,6 +732,9 @@ async function saveAsset(event) {
       );
 
       savedAsset = uploadResult.asset;
+      currentAssetImageUrl = savedAsset.image_url || currentAssetImageUrl;
+    } else {
+      currentAssetImageUrl = savedAsset.image_url || currentAssetImageUrl;
     }
 
     const savedVersion = savedAsset.version;
@@ -752,7 +776,7 @@ async function saveAsset(event) {
 
     if (fileToUpload) {
       setUploadMessage(
-        "The image may not have uploaded. Check the asset and try again.",
+        "The image may not have uploaded. Your asset is saved; you can retry by selecting the image again and saving.",
         true
       );
     }
