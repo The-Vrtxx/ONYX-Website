@@ -54,12 +54,17 @@
     .asset-preview canvas{display:block;width:100%;max-width:420px;height:auto;margin:0 auto}
     .asset-editor-preview{margin-top:18px;padding:16px;border:1px solid var(--line);background:#050b0e}
     .asset-editor-preview h3{margin:0 0 12px}
+    .asset-upload-box{grid-column:1/-1;padding:16px;border:1px dashed var(--line);background:#071012}
+    .asset-upload-box input[type=file]{padding:12px;background:#091316}
+    .asset-upload-box small{display:block;color:var(--muted);line-height:1.6;margin-top:8px}
+    .asset-upload-box strong{display:block;margin-bottom:8px;color:#e9ffff}
+    .asset-file-name{margin-top:8px;color:var(--teal);font-size:12px;overflow-wrap:anywhere}
     [hidden]{display:none!important}
     @media(max-width:650px){
       .stat-grid{grid-template-columns:1fr}
       .panel{padding:20px}
       .asset-grid,.asset-form{grid-template-columns:1fr}
-      .asset-form .wide,.asset-form-buttons{grid-column:auto}
+      .asset-form .wide,.asset-form-buttons,.asset-upload-box{grid-column:auto}
       .asset-toolbar select{width:100%}
     }
   </style>
@@ -129,41 +134,126 @@
       <div class="eyebrow">OWNER ONLY · GLOBAL COSMETICS</div>
       <h2>Asset Library</h2>
       <p class="muted">Create and manage the catalog used by ONYX profiles and the Prestige Shop. Asset IDs are permanent; editing an asset updates its current appearance without changing who owns it.</p>
+
       <div class="asset-toolbar">
         <select id="asset-category-filter" aria-label="Filter by category">
-          <option value="">All categories</option><option value="frame">Frames</option><option value="theme">Themes</option>
-          <option value="emblem">Emblems</option><option value="effect">Effects</option><option value="badge">Badges</option>
-          <option value="title">Titles</option><option value="achievement">Achievements</option><option value="background">Backgrounds</option>
-          <option value="border">Borders</option><option value="event">Event assets</option>
+          <option value="">All categories</option>
+          <option value="frame">Frames</option>
+          <option value="theme">Themes</option>
+          <option value="emblem">Emblems</option>
+          <option value="prestige_emblem">Prestige emblems</option>
+          <option value="effect">Effects</option>
+          <option value="badge">Badges</option>
+          <option value="title">Titles</option>
+          <option value="achievement">Achievements</option>
+          <option value="background">Backgrounds</option>
+          <option value="border">Borders</option>
+          <option value="event">Event assets</option>
         </select>
+
         <select id="asset-status-filter" aria-label="Filter by status">
-          <option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option>
+          <option value="all">All statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
         </select>
+
         <button class="button" id="refresh-assets" type="button">Refresh</button>
         <button class="button primary" id="new-asset-button" type="button">＋ Create asset</button>
       </div>
+
       <div class="message" id="asset-message" role="status"></div>
-      <div class="asset-grid" id="asset-list"><div class="asset-empty">Loading Asset Library…</div></div>
+      <div class="asset-grid" id="asset-list">
+        <div class="asset-empty">Loading Asset Library…</div>
+      </div>
 
       <div class="panel" id="asset-editor" hidden>
         <div class="eyebrow" id="asset-editor-eyebrow">NEW CATALOG ITEM</div>
         <h2 id="asset-editor-title">Create asset</h2>
         <p class="muted" id="asset-editor-help">Choose a permanent category and item ID. These cannot be changed after creation.</p>
+
         <form class="asset-form" id="asset-form">
-          <label>Category<select id="asset-category" required><option value="frame">Frame</option><option value="theme">Theme</option><option value="emblem">Emblem</option><option value="effect">Effect</option><option value="badge">Badge</option><option value="title">Title</option><option value="achievement">Achievement</option><option value="background">Background</option><option value="border">Border</option><option value="event">Event</option></select></label>
-          <label>Permanent item ID<input id="asset-item-id" maxlength="48" pattern="[a-z0-9_-]+" placeholder="example_asset" required></label>
-          <label class="wide">Display name<input id="asset-display-name" maxlength="80" required placeholder="Display name"></label>
-          <label class="wide">Description<textarea id="asset-description" maxlength="500" placeholder="Describe this asset"></textarea></label>
-          <label>Price (tokens)<input id="asset-price" type="number" min="0" max="2000000000" step="1" value="0" required></label>
-          <label>Rarity<select id="asset-rarity"><option>Common</option><option>Uncommon</option><option>Rare</option><option>Epic</option><option>Legendary</option><option>Mythic</option></select></label>
-          <label class="wide">Image URL<input id="asset-image-url" type="url" maxlength="1000" placeholder="https://…"></label>
-          <label>Sort order<input id="asset-sort-order" type="number" step="1" value="0"></label>
-          <label>Change note<input id="asset-change-note" maxlength="240" placeholder="Optional version note"></label>
-          <label class="checkline"><input id="asset-active" type="checkbox" checked> Active</label>
-          <label class="checkline"><input id="asset-shop-item" type="checkbox" checked> Available in shop</label>
-          <label class="wide">Metadata (JSON object)<textarea id="asset-metadata" spellcheck="false">{}</textarea></label>
+          <label>Category
+            <select id="asset-category" required>
+              <option value="frame">Frame</option>
+              <option value="theme">Theme</option>
+              <option value="emblem">Emblem</option>
+              <option value="prestige_emblem">Prestige emblem</option>
+              <option value="effect">Effect</option>
+              <option value="badge">Badge</option>
+              <option value="title">Title</option>
+              <option value="achievement">Achievement</option>
+              <option value="background">Background</option>
+              <option value="border">Border</option>
+              <option value="event">Event</option>
+            </select>
+          </label>
+
+          <label>Permanent item ID
+            <input id="asset-item-id" maxlength="48" pattern="[a-z0-9_-]+" placeholder="example_asset" required>
+          </label>
+
+          <label class="wide">Display name
+            <input id="asset-display-name" maxlength="80" required placeholder="Display name">
+          </label>
+
+          <label class="wide">Description
+            <textarea id="asset-description" maxlength="500" placeholder="Describe this asset"></textarea>
+          </label>
+
+          <label>Price (tokens)
+            <input id="asset-price" type="number" min="0" max="2000000000" step="1" value="0" required>
+          </label>
+
+          <label>Rarity
+            <select id="asset-rarity">
+              <option>Common</option>
+              <option>Uncommon</option>
+              <option>Rare</option>
+              <option>Epic</option>
+              <option>Legendary</option>
+              <option>Mythic</option>
+            </select>
+          </label>
+
+          <label class="wide">Image URL (optional)
+            <input id="asset-image-url" type="url" maxlength="1000" placeholder="https://…">
+          </label>
+
+          <div class="asset-upload-box">
+            <strong>Or upload directly from your device</strong>
+            <input
+              id="asset-image-file"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              aria-label="Choose an asset image from your device"
+            >
+            <small>Supported: PNG, JPG, WEBP, GIF. Maximum size: 5 MB. You can use this for a new asset or replace the artwork on an existing badge.</small>
+            <div class="asset-file-name" id="asset-selected-file">No file selected.</div>
+            <div class="message" id="asset-upload-message" role="status"></div>
+          </div>
+
+          <label>Sort order
+            <input id="asset-sort-order" type="number" step="1" value="0">
+          </label>
+
+          <label>Change note
+            <input id="asset-change-note" maxlength="240" placeholder="Optional version note">
+          </label>
+
+          <label class="checkline">
+            <input id="asset-active" type="checkbox" checked> Active
+          </label>
+
+          <label class="checkline">
+            <input id="asset-shop-item" type="checkbox" checked> Available in shop
+          </label>
+
+          <label class="wide">Metadata (JSON object)
+            <textarea id="asset-metadata" spellcheck="false">{}</textarea>
+          </label>
+
           <div class="asset-form-buttons">
-            <button class="button primary" id="save-asset" type="submit">Save asset</button>
+            <button class="button primary" id="save-asset" type="submit">Create asset</button>
             <button class="secondary-button" id="cancel-asset-edit" type="button">Cancel</button>
           </div>
         </form>
@@ -173,7 +263,7 @@
           <div class="asset-preview">
             <canvas id="asset-editor-preview-canvas" width="420" height="300"></canvas>
           </div>
-          <p class="asset-meta">Preview only. Changes here do not purchase, equip, or save an asset.</p>
+          <p class="asset-meta">Preview only. Changes are saved when you select Save asset.</p>
         </div>
 
         <div class="asset-history" id="asset-history"></div>
@@ -181,7 +271,8 @@
     </section>
 
     <section class="panel" id="developer-panel" hidden>
-      <div class="eyebrow">DEVELOPER ACCESS</div><h2>Developer workspace</h2>
+      <div class="eyebrow">DEVELOPER ACCESS</div>
+      <h2>Developer workspace</h2>
       <p class="muted">You have ONYX developer access. Developer appointment management and owner-only settings are reserved for the owner account.</p>
     </section>
   </section>
@@ -191,12 +282,18 @@
   <div class="wrap foot">
     <a class="brand" href="/"><img class="brand-mark" src="/assets/onyx-mark.png" alt="">ONYX</a>
     <span>© <span data-year></span> ONYX Development · Vrtx</span>
-    <div><a href="/features">Features</a><a href="/docs">Documentation</a><a href="/commands/">Commands</a><a href="/shop/">Prestige Shop</a><a href="/support">Support</a></div>
+    <div>
+      <a href="/features">Features</a>
+      <a href="/docs">Documentation</a>
+      <a href="/commands/">Commands</a>
+      <a href="/shop/">Prestige Shop</a>
+      <a href="/support">Support</a>
+    </div>
   </div>
 </footer>
 
 <script src="../assets/site.js?v=2"></script>
 <script src="../assets/preview.js?v=2"></script>
-<script src="../assets/owner.js?v=2"></script>
+<script src="../assets/owner.js?v=3"></script>
 </body>
 </html>
