@@ -31,7 +31,6 @@
       link = document.createElement("a");
       link.href = path;
       link.textContent = label;
-      nav.append(link);
     }
 
     Object.entries(attributes).forEach(([key, value]) => {
@@ -46,10 +45,21 @@
   }
 
   // Public navigation links.
-  addLink("/xp", "GLOBAL XP");
-  addLink("/dashboard/", "DASHBOARD", {
+  // Insert Global XP directly alongside the main website pages.
+  const xpLink = addLink("/xp", "GLOBAL XP");
+  const shopLink = findLink("/shop/");
+
+  if (shopLink) {
+    shopLink.insertAdjacentElement("afterend", xpLink);
+  } else {
+    nav.append(xpLink);
+  }
+
+  // Dashboard navigation.
+  const dashboardLink = addLink("/dashboard/", "DASHBOARD", {
     "data-onyx-dashboard": ""
   });
+  nav.append(dashboardLink);
 
   // Owner and developer workspace.
   const teamLink = addLink("/owner/", "CONTROL CENTER", {
@@ -58,6 +68,7 @@
   });
 
   teamLink.hidden = true;
+  nav.append(teamLink);
 
   // Sign-in navigation.
   let authLink = nav.querySelector("[data-onyx-auth]");
@@ -66,8 +77,9 @@
     authLink = document.createElement("a");
     authLink.className = "nav-cta";
     authLink.setAttribute("data-onyx-auth", "");
-    nav.append(authLink);
   }
+
+  nav.append(authLink);
 
   let signOutLink = nav.querySelector("[data-onyx-signout]");
 
@@ -78,8 +90,9 @@
     signOutLink.textContent = "SIGN OUT";
     signOutLink.setAttribute("data-onyx-signout", "");
     signOutLink.hidden = true;
-    nav.append(signOutLink);
   }
+
+  nav.append(signOutLink);
 
   const currentPath = window.location.pathname || "/";
 
