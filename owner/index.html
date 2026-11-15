@@ -5,173 +5,344 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#05090b">
-  <title>ONYX Cog Monitor</title>
-  <link rel="stylesheet" href="../../assets/styles.css">
-
+  <title>ONYX Control Center</title>
+  <link rel="stylesheet" href="../assets/styles.css">
   <style>
-    .monitor-wrap{width:min(1120px,calc(100% - 36px));margin:auto;padding:64px 0 100px}
-    .monitor-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
-    .monitor-hero h1{font-size:clamp(42px,7vw,76px);margin:12px 0}
-    .monitor-lead{max-width:650px;color:var(--muted)}
-    .monitor-panel{margin-top:28px;padding:26px;border:1px solid var(--line);background:linear-gradient(145deg,#0d191c,#080e11)}
-    .monitor-panel h2{margin:0 0 10px}
-    .muted{color:var(--muted)}
+    .control-wrap{width:min(1120px,calc(100% - 36px));margin:auto;padding:64px 0 100px}
+    .control-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+    .control-hero h1{font-size:clamp(42px,7vw,76px);margin:12px 0}
+    .control-lead{max-width:650px;color:var(--muted)}
+    .panel{margin-top:28px;padding:26px;border:1px solid var(--line);background:linear-gradient(145deg,#0d191c,#080e11)}
+    .panel h2{margin:0 0 10px}.muted{color:var(--muted)}
+    .login-panel,.denied-panel{text-align:center;padding:48px 24px}
+    .login-panel p,.denied-panel p{color:var(--muted);max-width:580px;margin:12px auto 24px}
     .account{display:flex;align-items:center;gap:12px;padding:12px 15px;border:1px solid var(--line);background:var(--panel)}
-    .account img{width:42px;height:42px;border-radius:50%}
-    .account small{display:block;color:var(--muted)}
+    .account img{width:42px;height:42px;border-radius:50%}.account small{display:block;color:var(--muted)}
     .stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:24px}
-    .stat-card{padding:22px;border:1px solid var(--line);background:#0b1518;min-width:0}
+    .stat-card{padding:22px;border:1px solid var(--line);background:#0b1518}
     .stat-card span{display:block;color:var(--muted);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
-    .stat-card strong{display:block;color:var(--teal);font-size:32px;margin-top:8px;overflow-wrap:anywhere}
-    .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:22px 0}
-    .toolbar input,.toolbar select{background:#071012;border:1px solid var(--line);color:#fff;padding:12px;min-width:0;font:inherit}
-    .toolbar input{flex:1;min-width:190px}
-    .toolbar select{min-width:150px}
-    .toolbar button,.secondary-button{border:1px solid var(--line);background:#102024;color:#e9ffff;padding:11px 15px;cursor:pointer;font:inherit}
-    .toolbar button:disabled{opacity:.5;cursor:not-allowed}
-    .cog-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-    .cog-card{border:1px solid var(--line);background:#091316;padding:17px;min-width:0}
-    .cog-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-    .cog-card h3{margin:0 0 7px;font-size:16px;overflow-wrap:anywhere}
-    .cog-meta{font-size:12px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere}
-    .status-pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.08em;white-space:nowrap}
-    .status-loaded{color:#80e4b0;background:#102a20}
-    .status-unloaded{color:#ff9da8;background:#32171d}
-    .status-unknown{color:#d5c28b;background:#292416}
-    .message{margin-top:14px;color:var(--muted);font-size:13px}
-    .message.error{color:#ff9999}
-    .empty-state{grid-column:1/-1;padding:30px;border:1px dashed var(--line);color:var(--muted);text-align:center}
+    .stat-card strong{display:block;color:var(--teal);font-size:32px;margin-top:8px}
+    .team-form{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+    .team-form input{flex:1;min-width:220px;background:#071012;border:1px solid var(--line);color:#fff;padding:13px}
+    .team-list{display:grid;gap:10px}
+    .team-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px;border:1px solid var(--line);background:#091316}
+    .team-row small{display:block;color:var(--muted);margin-top:4px}
+    .remove-button{border:1px solid #753f49;background:#261318;color:#ffb8c1;padding:10px 14px;cursor:pointer}
+    .message{margin-top:14px;color:var(--muted);font-size:13px}.message.error{color:#ff9999}
     .status-line{margin-top:14px;color:var(--muted);font-size:12px}
-    .access-panel{text-align:center;padding:48px 24px}
-    .access-panel p{color:var(--muted);max-width:580px;margin:12px auto 24px}
+    .asset-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:18px 0}
+    .asset-toolbar select,.asset-form input,.asset-form select,.asset-form textarea{background:#071012;border:1px solid var(--line);color:#fff;padding:12px;min-width:0;width:100%;font:inherit}
+    .asset-toolbar select{width:auto;min-width:150px}
+    .asset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .asset-card{border:1px solid var(--line);background:#091316;padding:16px;min-width:0}
+    .asset-card-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .asset-card h3{margin:0 0 5px;font-size:17px;overflow-wrap:anywhere}
+    .asset-meta{font-size:12px;color:var(--muted);line-height:1.6}
+    .asset-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .asset-actions button,.secondary-button{border:1px solid var(--line);background:#102024;color:#e9ffff;padding:9px 12px;cursor:pointer}
+    .asset-actions button:disabled{opacity:.5;cursor:not-allowed}
+    .asset-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+    .asset-form label{display:grid;gap:6px;color:var(--muted);font-size:12px}
+    .asset-form .wide{grid-column:1/-1}
+    .asset-form textarea{min-height:82px;resize:vertical}
+    .asset-form .checkline{display:flex;align-items:center;gap:9px;color:var(--muted)}
+    .asset-form .checkline input{width:auto;min-width:0}
+    .asset-form-buttons{display:flex;gap:10px;flex-wrap:wrap;grid-column:1/-1}
+    .asset-history{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+    .asset-empty{grid-column:1/-1;padding:24px;border:1px dashed var(--line);color:var(--muted);text-align:center}
+    .asset-preview{margin:14px 0;padding:12px;border:1px solid var(--line);background:#050b0e;border-radius:8px}
+    .asset-preview canvas{display:block;width:100%;max-width:420px;height:auto;margin:0 auto}
+    .asset-editor-preview{margin-top:18px;padding:16px;border:1px solid var(--line);background:#050b0e}
+    .asset-editor-preview h3{margin:0 0 12px}
+    .asset-upload-box{grid-column:1/-1;padding:16px;border:1px dashed var(--line);background:#071012}
+    .asset-upload-box input[type=file]{padding:12px;background:#091316}
+    .asset-upload-box small{display:block;color:var(--muted);line-height:1.6;margin-top:8px}
+    .asset-upload-box strong{display:block;margin-bottom:8px;color:#e9ffff}
+    .asset-file-name{margin-top:8px;color:var(--teal);font-size:12px;overflow-wrap:anywhere}
+
+    /* Layered dashboard navigation */
+    .dashboard-layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:20px;margin-top:28px;align-items:start}
+    .dashboard-nav{position:sticky;top:18px;padding:12px;border:1px solid var(--line);background:#091316;display:grid;gap:7px}
+    .dashboard-nav button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:13px 14px;border:1px solid transparent;background:transparent;color:var(--muted);font:inherit;cursor:pointer}
+    .dashboard-nav button:hover{background:#102024;color:#e9ffff}
+    .dashboard-nav button[aria-current="page"]{background:#102a2b;border-color:var(--teal);color:#e9ffff}
+    .dashboard-nav small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+    .dashboard-content{min-width:0}
+    .dashboard-view[hidden]{display:none!important}
+    .dashboard-view>.panel:first-child{margin-top:0}
+    .view-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+    .view-heading h2{margin:5px 0}
+    .view-heading p{margin:0;color:var(--muted)}
+    .coming-soon{padding:28px;border:1px dashed var(--line);background:#091316;color:var(--muted)}
     [hidden]{display:none!important}
 
     @media(max-width:650px){
+      .dashboard-layout{grid-template-columns:1fr}
+      .dashboard-nav{position:static;grid-template-columns:repeat(2,minmax(0,1fr))}
+      .dashboard-nav button{padding:11px 9px;font-size:12px}
       .stat-grid{grid-template-columns:1fr}
-      .monitor-panel{padding:20px}
-      .cog-grid{grid-template-columns:1fr}
-      .toolbar input,.toolbar select{width:100%}
+      .panel{padding:20px}
+      .asset-grid,.asset-form{grid-template-columns:1fr}
+      .asset-form .wide,.asset-form-buttons,.asset-upload-box{grid-column:auto}
+      .asset-toolbar select{width:100%}
     }
   </style>
 </head>
-
 <body>
 <header class="topbar">
   <a class="brand" href="/"><img class="brand-mark" src="/assets/onyx-mark.png" alt="">ONYX</a>
   <button class="menu-toggle" type="button" aria-label="Toggle navigation">☰</button>
   <nav>
-    <a href="/">HOME</a>
-    <a href="/features">FEATURES</a>
-    <a href="/docs">DOCUMENTATION</a>
-    <a href="/commands/">COMMANDS</a>
-    <a href="/shop/">PRESTIGE SHOP</a>
-    <a class="active" href="/owner/">CONTROL CENTER</a>
+    <a href="/">HOME</a><a href="/features">FEATURES</a>
+    <a href="/docs">DOCUMENTATION</a><a href="/commands/">COMMANDS</a>
+    <a href="/shop/">PRESTIGE SHOP</a><a class="active" href="/owner/">CONTROL CENTER</a>
     <a href="/support">SUPPORT</a>
   </nav>
 </header>
 
-<main class="monitor-wrap">
-  <section class="monitor-hero">
+<main class="control-wrap">
+  <section class="control-hero">
     <div>
-      <div class="eyebrow">ONYX DEVELOPMENT · LIVE MONITORING</div>
-      <h1>Cog <em>Monitor.</em></h1>
-      <p class="monitor-lead">
-        Monitor ONYX extensions, check which systems are loaded, and quickly
-        find individual cogs without digging through deployment logs.
-      </p>
+      <div class="eyebrow">RESTRICTED ACCESS · ONYX DEVELOPMENT</div>
+      <h1>Control <em>Center.</em></h1>
+      <p class="control-lead">A private workspace for the ONYX owner and appointed developers. Access is verified against the same developer records used by the bot.</p>
     </div>
-
     <div class="account" id="account" hidden>
-      <img id="avatar" src="../../assets/onyx-mark.png" alt="">
-      <div>
-        <strong id="username"></strong>
-        <small id="role-label">ONYX team</small>
-      </div>
+      <img id="avatar" src="../assets/onyx-mark.png" alt="">
+      <div><strong id="username"></strong><small id="role-label">ONYX team</small></div>
       <button class="button" id="logout" type="button">Sign out</button>
     </div>
   </section>
 
-  <section class="monitor-panel access-panel" id="login-panel">
+  <section class="panel login-panel" id="login-panel">
     <h2>Developer sign-in required</h2>
-    <p>Sign in with Discord to access ONYX runtime monitoring.</p>
-    <a class="button primary" href="https://api.onyxdiscord.com/auth/discord?next=%2Fowner%2Fcogs%2F">
-      Continue with Discord ↗
-    </a>
+    <p>Sign in with Discord. Only the configured ONYX owner and users appointed with the developer command can enter.</p>
+    <a class="button primary" href="https://api.onyxdiscord.com/auth/discord?next=%2Fowner%2F">Continue with Discord ↗</a>
   </section>
 
-  <section class="monitor-panel access-panel" id="denied-panel" hidden>
+  <section class="panel denied-panel" id="denied-panel" hidden>
     <h2>Access not granted</h2>
-    <p>This Discord account is not on the ONYX development team.</p>
+    <p>This Discord account is not on the ONYX development team. Ask the ONYX owner to appoint your account with <strong>,developer add</strong>.</p>
     <button class="button" id="denied-logout" type="button">Sign out</button>
   </section>
 
-  <section id="monitor" hidden>
-    <section class="monitor-panel">
-      <div class="view-heading">
-        <div>
-          <div class="eyebrow">RUNTIME STATUS</div>
-          <h2>Extension Overview</h2>
-          <p class="muted">Live information reported by the running ONYX bot.</p>
-        </div>
-        <button class="button primary" id="refresh-cogs" type="button">
-          ↻ Refresh
+  <section id="portal" hidden>
+    <div class="dashboard-layout">
+      <nav class="dashboard-nav" id="dashboard-nav" aria-label="Control Center sections">
+        <button type="button" data-dashboard-view="overview" aria-current="page">
+          <span>◈</span><span>Overview<small>System status</small></span>
         </button>
+        <button type="button" data-dashboard-view="leveling">
+          <span>↗</span><span>Leveling & Progression<small>Global XP controls</small></span>
+        </button>
+        <button type="button" data-dashboard-view="team">
+          <span>♙</span><span>Team Management<small>Developer access</small></span>
+        </button>
+        <button type="button" data-dashboard-view="assets">
+          <span>▧</span><span>Asset Library<small>Cosmetics & artwork</small></span>
+        </button>
+        <button type="button" data-dashboard-view="settings">
+          <span>⚙</span><span>System Settings<small>Global configuration</small></span>
+        </button>
+      </nav>
+
+      <div class="dashboard-content">
+        <section class="dashboard-view" data-dashboard-panel="overview">
+          <div class="panel">
+            <div class="view-heading">
+              <div>
+                <div class="eyebrow">SYSTEM OVERVIEW</div>
+                <h2>ONYX at a glance</h2>
+                <p>Live values from the ONYX shared database.</p>
+              </div>
+            </div>
+            <div class="stat-grid">
+              <div class="stat-card"><span>Servers</span><strong id="stat-servers">—</strong></div>
+              <div class="stat-card"><span>Combined members</span><strong id="stat-members">—</strong></div>
+              <div class="stat-card"><span>Public commands</span><strong id="stat-commands">—</strong></div>
+            </div>
+            <div class="status-line" id="updated-at">Loading system information…</div>
+          </div>
+        </section>
+
+        <section class="dashboard-view" data-dashboard-panel="leveling" hidden>
+          <div class="panel">
+            <div class="eyebrow">OWNER ONLY · GLOBAL PROGRESSION</div>
+            <h2>Leveling & Progression</h2>
+            <p class="muted">Manage the shared global XP system, progression settings, and member XP. These controls apply across all ONYX servers.</p>
+            <div class="coming-soon" id="leveling-control-center">
+              Global leveling controls are being connected. Existing progression remains unchanged.
+            </div>
+          </div>
+        </section>
+
+        <section class="dashboard-view" data-dashboard-panel="team" hidden>
+          <section class="panel" id="team-panel" hidden>
+            <div class="eyebrow">OWNER ONLY</div>
+            <h2>Developer access</h2>
+            <p class="muted">Only the configured owner can appoint or remove ONYX developers. Changes use the same database as the bot's developer command.</p>
+            <form class="team-form" id="add-form">
+              <input id="new-user-id" name="user_id" inputmode="numeric" autocomplete="off" placeholder="Discord user ID" aria-label="Discord user ID" required>
+              <button class="button primary" type="submit">Add developer</button>
+            </form>
+            <div class="message" id="team-message" role="status"></div>
+            <div class="team-list" id="team-list"></div>
+          </section>
+        </section>
+
+        <section class="dashboard-view" data-dashboard-panel="assets" hidden>
+          <section class="panel" id="asset-library-panel" hidden>
+            <div class="eyebrow">OWNER ONLY · GLOBAL COSMETICS</div>
+            <h2>Asset Library</h2>
+            <p class="muted">Create and manage the catalog used by ONYX profiles and the Prestige Shop. Asset IDs are permanent; editing an asset updates its current appearance without changing who owns it.</p>
+
+            <div class="asset-toolbar">
+              <select id="asset-category-filter" aria-label="Filter by category">
+                <option value="">All categories</option>
+                <option value="frame">Frames</option>
+                <option value="theme">Themes</option>
+                <option value="emblem">Emblems</option>
+                <option value="prestige_emblem">Prestige emblems</option>
+                <option value="effect">Effects</option>
+                <option value="badge">Badges</option>
+                <option value="title">Titles</option>
+                <option value="achievement">Achievements</option>
+                <option value="background">Backgrounds</option>
+                <option value="border">Borders</option>
+                <option value="event">Event assets</option>
+              </select>
+
+              <select id="asset-status-filter" aria-label="Filter by status">
+                <option value="all">All statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+
+              <button class="button" id="refresh-assets" type="button">Refresh</button>
+              <button class="button" id="import-prestige-emblems" type="button">Import existing prestige emblems</button>
+              <button class="button primary" id="new-asset-button" type="button">＋ Create asset</button>
+            </div>
+
+            <div class="message" id="asset-message" role="status"></div>
+            <div class="asset-grid" id="asset-list">
+              <div class="asset-empty">Loading Asset Library…</div>
+            </div>
+
+            <div class="panel" id="asset-editor" hidden>
+              <div class="eyebrow" id="asset-editor-eyebrow">NEW CATALOG ITEM</div>
+              <h2 id="asset-editor-title">Create asset</h2>
+              <p class="muted" id="asset-editor-help">Choose a permanent category and item ID. These cannot be changed after creation.</p>
+
+              <form class="asset-form" id="asset-form">
+                <label>Category
+                  <select id="asset-category" required>
+                    <option value="frame">Frame</option>
+                    <option value="theme">Theme</option>
+                    <option value="emblem">Emblem</option>
+                    <option value="prestige_emblem">Prestige emblem</option>
+                    <option value="effect">Effect</option>
+                    <option value="badge">Badge</option>
+                    <option value="title">Title</option>
+                    <option value="achievement">Achievement</option>
+                    <option value="background">Background</option>
+                    <option value="border">Border</option>
+                    <option value="event">Event</option>
+                  </select>
+                </label>
+
+                <label>Permanent item ID
+                  <input id="asset-item-id" maxlength="48" pattern="[a-z0-9_-]+" placeholder="example_asset" required>
+                </label>
+
+                <label class="wide">Display name
+                  <input id="asset-display-name" maxlength="80" required placeholder="Display name">
+                </label>
+
+                <label class="wide">Description
+                  <textarea id="asset-description" maxlength="500" placeholder="Describe this asset"></textarea>
+                </label>
+
+                <label>Price (tokens)
+                  <input id="asset-price" type="number" min="0" max="2000000000" step="1" value="0" required>
+                </label>
+
+                <label>Rarity
+                  <select id="asset-rarity">
+                    <option>Common</option>
+                    <option>Uncommon</option>
+                    <option>Rare</option>
+                    <option>Epic</option>
+                    <option>Legendary</option>
+                    <option>Mythic</option>
+                  </select>
+                </label>
+
+                <label class="wide">Image URL (optional)
+                  <input id="asset-image-url" type="url" maxlength="1000" placeholder="https://…">
+                </label>
+
+                <div class="asset-upload-box">
+                  <strong>Or upload directly from your device</strong>
+                  <input id="asset-image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Choose an asset image from your device">
+                  <small>Supported: PNG, JPG, WEBP, GIF. Maximum size: 5 MB. You can use this for a new asset or replace the artwork on an existing badge.</small>
+                  <div class="asset-file-name" id="asset-selected-file">No file selected.</div>
+                  <div class="message" id="asset-upload-message" role="status"></div>
+                </div>
+
+                <label>Sort order
+                  <input id="asset-sort-order" type="number" step="1" value="0">
+                </label>
+
+                <label>Change note
+                  <input id="asset-change-note" maxlength="240" placeholder="Optional version note">
+                </label>
+
+                <label class="checkline">
+                  <input id="asset-active" type="checkbox" checked> Active
+                </label>
+
+                <label class="checkline">
+                  <input id="asset-shop-item" type="checkbox" checked> Available in shop
+                </label>
+
+                <label class="wide">Metadata (JSON object)
+                  <textarea id="asset-metadata" spellcheck="false">{}</textarea>
+                </label>
+
+                <div class="asset-form-buttons">
+                  <button class="button primary" id="save-asset" type="submit">Create asset</button>
+                  <button class="secondary-button" id="cancel-asset-edit" type="button">Cancel</button>
+                </div>
+              </form>
+
+              <div class="asset-editor-preview">
+                <h3>Live Asset Preview</h3>
+                <div class="asset-preview">
+                  <canvas id="asset-editor-preview-canvas" width="420" height="300"></canvas>
+                </div>
+                <p class="asset-meta">Preview only. Changes are saved when you select Save asset.</p>
+              </div>
+
+              <div class="asset-history" id="asset-history"></div>
+            </div>
+          </section>
+        </section>
+
+        <section class="dashboard-view" data-dashboard-panel="settings" hidden>
+          <div class="panel">
+            <div class="eyebrow">OWNER ONLY</div>
+            <h2>System Settings</h2>
+            <p class="muted">Global ONYX configuration will live here. Settings will be added only after their bot and API behavior is verified.</p>
+            <div class="coming-soon">No system settings have been changed.</div>
+          </div>
+        </section>
       </div>
+    </div>
 
-      <div class="stat-grid">
-        <div class="stat-card">
-          <span>Loaded cogs</span>
-          <strong id="loaded-count">—</strong>
-        </div>
-        <div class="stat-card">
-          <span>Reported extensions</span>
-          <strong id="total-count">—</strong>
-        </div>
-        <div class="stat-card">
-          <span>Bot status</span>
-          <strong id="bot-status" style="font-size:22px">—</strong>
-        </div>
-      </div>
-
-      <div class="status-line" id="heartbeat-status">
-        Waiting for runtime data…
-      </div>
-    </section>
-
-    <section class="monitor-panel">
-      <div class="eyebrow">EXTENSION DIRECTORY</div>
-      <h2>Individual Cog Status</h2>
-      <p class="muted">
-        Search the reported extension list and filter by current status.
-      </p>
-
-      <div class="toolbar">
-        <input
-          id="cog-search"
-          type="search"
-          placeholder="Search cogs…"
-          aria-label="Search cogs"
-        >
-
-        <select id="cog-filter" aria-label="Filter cogs by status">
-          <option value="all">All reported cogs</option>
-          <option value="loaded">Loaded only</option>
-        </select>
-
-        <button id="clear-search" type="button">Clear search</button>
-      </div>
-
-      <div class="message" id="cog-message" role="status"></div>
-
-      <div class="cog-grid" id="cog-list">
-        <div class="empty-state">Waiting for ONYX runtime data…</div>
-      </div>
-
-      <div class="status-line" id="last-refresh">
-        No refresh has completed yet.
-      </div>
-
-      <div class="message error" id="monitor-error" role="status"></div>
+    <section class="panel" id="developer-panel" hidden>
+      <div class="eyebrow">DEVELOPER ACCESS</div>
+      <h2>Developer workspace</h2>
+      <p class="muted">You have ONYX developer access. Developer appointment management and owner-only settings are reserved for the owner account.</p>
     </section>
   </section>
 </main>
@@ -190,7 +361,37 @@
   </div>
 </footer>
 
-<script src="../../assets/site.js?v=2"></script>
-<script src="../../assets/owner-cogs.js?v=1"></script>
+<script src="../assets/site.js?v=2"></script>
+<script src="../assets/preview.js?v=2"></script>
+<script src="../assets/owner.js?v=3"></script>
+<script src="../assets/owner-leveling.js?v=1"></script>
+<script src="../assets/owner-system-settings.js?v=1"></script>
+<script>
+  // Section switching is initialized here; role permissions are applied
+  // by the existing owner.js authentication flow in the next step.
+  document.addEventListener("DOMContentLoaded", () => {
+    const nav = document.getElementById("dashboard-nav");
+    if (!nav) return;
+
+    const buttons = Array.from(nav.querySelectorAll("[data-dashboard-view]"));
+    const panels = Array.from(document.querySelectorAll("[data-dashboard-panel]"));
+
+    function showView(name) {
+      const button = buttons.find(item => item.dataset.dashboardView === name);
+      const panel = panels.find(item => item.dataset.dashboardPanel === name);
+      if (!button || !panel) return;
+
+      buttons.forEach(item => item.setAttribute("aria-current", item === button ? "page" : "false"));
+      panels.forEach(item => item.hidden = item !== panel);
+
+      if (name === "team" && document.getElementById("team-panel").hidden) return;
+      if (name === "assets" && document.getElementById("asset-library-panel").hidden) return;
+    }
+
+    buttons.forEach(button => {
+      button.addEventListener("click", () => showView(button.dataset.dashboardView));
+    });
+  });
+</script>
 </body>
 </html>
