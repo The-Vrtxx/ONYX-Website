@@ -11,6 +11,8 @@
 (function () {
   "use strict";
 
+  const API = "https://api.onyxdiscord.com";
+
   const THEMES = {
     onyx: {
       start: "#0c121f",
@@ -463,6 +465,33 @@
     return canvas;
   }
 
+  function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
+    if (suppliedUrl) {
+      return suppliedUrl;
+    }
+
+    if (metadata && metadata.image_url) {
+      return metadata.image_url;
+    }
+
+    const imageCategories = new Set([
+      "frame",
+      "border",
+      "background",
+      "emblem",
+      "badge"
+    ]);
+
+    if (!imageCategories.has(category) || !itemId) {
+      return null;
+    }
+
+    // Asset Library media fallback. This lets shop previews retrieve
+    // uploaded artwork even when the catalog image_url field is empty.
+    return API + "/api/assets/media/" +
+      encodeURIComponent(category + ":" + itemId);
+  }
+
   function renderAsset(canvas, asset = {}) {
     if (!canvas || !canvas.getContext) {
       throw new Error("A valid canvas element is required.");
@@ -480,7 +509,13 @@
     const category = String(asset.category || "cosmetic").toLowerCase();
     const itemId = String(asset.item_id || "").toLowerCase();
     const name = String(asset.display_name || "ONYX Asset");
-    const imageUrl = asset.image_url || asset.metadata?.image_url || null;
+
+    const imageUrl = getAssetImageUrl(
+      category,
+      itemId,
+      asset.image_url,
+      asset.metadata
+    );
 
     ctx.fillStyle = "#091316";
     roundedRect(ctx, 8, 8, width - 16, height - 16, 12);
@@ -501,6 +536,7 @@
 
       ctx.fillStyle = theme.accent;
       ctx.fillRect(55, 205, 310, 7);
+
     } else if (category === "frame" || category === "border") {
       ctx.fillStyle = "#101c23";
       roundedRect(ctx, 75, 45, 270, 170, 15);
@@ -510,6 +546,7 @@
       ctx.lineWidth = 10;
       roundedRect(ctx, 75, 45, 270, 170, 15);
       ctx.stroke();
+
     } else if (category === "effect") {
       const color = effect || "#28dcd2";
 
@@ -521,6 +558,7 @@
       roundedRect(ctx, 85, 55, 250, 145, 20);
       ctx.stroke();
       ctx.restore();
+
     } else if (category === "emblem" || category === "badge") {
       const badge = EMBLEMS[itemId] || {
         label: name.toUpperCase().slice(0, 12),
@@ -539,6 +577,7 @@
       ctx.font = "bold 18px Arial";
       ctx.textAlign = "center";
       ctx.fillText(badge.label, 210, 142);
+
     } else {
       ctx.fillStyle = "#13252b";
       roundedRect(ctx, 95, 55, 230, 145, 16);
@@ -555,24 +594,31 @@
       ctx.fillText("ONYX", 210, 140);
     }
 
-    ctx.fillStyle = "#e9ffff";
-    ctx.font = "bold 17px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText(fitText(ctx, name, 360), 210, 270);
+    function drawAssetCaption() {
+      ctx.fillStyle = "#e9ffff";
+      ctx.font = "bold 17px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(fitText(ctx, name, 360), 210, 270);
 
-    ctx.fillStyle = "#8da7ae";
-    ctx.font = "11px Arial";
-    ctx.fillText(category.toUpperCase(), 210, 288);
+      ctx.fillStyle = "#8da7ae";
+      ctx.font = "11px Arial";
+      ctx.fillText(category.toUpperCase(), 210, 288);
+    }
+
+    drawAssetCaption();
 
     if (imageUrl) {
       const image = new Image();
       image.crossOrigin = "anonymous";
 
       image.onload = () => {
+        // Clear only the artwork preview area, keeping the card
+        // background and the name/category captions intact.
         ctx.clearRect(20, 20, width - 40, 220);
 
-        const maxWidth = 220;
-        const maxHeight = 180;
+        const maxWidth = 300;
+        const maxHeight = 205;
+
         const scale = Math.min(
           maxWidth / image.width,
           maxHeight / image.height,
@@ -585,23 +631,19 @@
         ctx.drawImage(
           image,
           (width - drawWidth) / 2,
-          35 + (180 - drawHeight) / 2,
+          25 + (205 - drawHeight) / 2,
           drawWidth,
           drawHeight
         );
 
-        ctx.fillStyle = "#e9ffff";
-        ctx.font = "bold 17px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(fitText(ctx, name, 360), 210, 270);
-
-        ctx.fillStyle = "#8da7ae";
-        ctx.font = "11px Arial";
-        ctx.fillText(category.toUpperCase(), 210, 288);
+        drawAssetCaption();
       };
 
       image.onerror = () => {
-        console.warn("ONYX preview image could not be loaded:", imageUrl);
+        console.warn(
+          "ONYX preview image could not be loaded:",
+          imageUrl
+        );
       };
 
       image.src = imageUrl;
