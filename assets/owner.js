@@ -957,7 +957,8 @@ async function startPortal() {
       "leveling",
       "team",
       "assets",
-      "settings"
+      "settings",
+      "cogs"
     ]);
 
     document.querySelectorAll("[data-dashboard-view]").forEach(button => {
