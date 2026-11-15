@@ -22,6 +22,8 @@
   ];
 
   let currentSettings = null;
+  let healthRefreshTimer = null;
+  let healthLoading = false;
 
   function el(tag, attributes = {}, content = "") {
     const node = document.createElement(tag);
@@ -100,6 +102,7 @@
     });
 
     const text = el("span");
+
     text.append(
       el("strong", {}, title),
       el("small", {
@@ -166,6 +169,424 @@
     return {label, input};
   }
 
+  function makeHealthStat(label, id) {
+    const card = el("div", {
+      class: "stat-card",
+      style: "min-width:0"
+    });
+
+    card.append(
+      el("span", {}, label),
+      el("strong", {
+        id,
+        style: "font-size:25px;overflow-wrap:anywhere"
+      }, "—")
+    );
+
+    return card;
+  }
+
+  function setHealthValue(id, value) {
+    const node = document.getElementById(id);
+    if (node) node.textContent = value;
+  }
+
+  function formatDuration(seconds) {
+    seconds = Math.max(0, Number(seconds) || 0);
+
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+
+    const parts = [];
+
+    if (days) parts.push(days + "d");
+    if (hours || days) parts.push(hours + "h");
+    if (minutes || hours || days) parts.push(minutes + "m");
+
+    parts.push(remainingSeconds + "s");
+
+    return parts.join(" ");
+  }
+
+  function formatTimestamp(value) {
+    if (!value) return "No heartbeat recorded";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "Unknown";
+    }
+
+    return date.toLocaleString();
+  }
+
+  function makeStatusPill(status) {
+    const normalized = String(status || "unknown").toLowerCase();
+
+    let color = "#aab5bb";
+    let background = "#182328";
+    let label = normalized.toUpperCase();
+
+    if (normalized === "online" || normalized === "connected") {
+      color = "#80e4b0";
+      background = "#102a20";
+    } else if (
+      normalized === "offline" ||
+      normalized === "disconnected"
+    ) {
+      color = "#ff9da8";
+      background = "#32171d";
+    } else if (normalized === "unknown") {
+      label = "UNKNOWN";
+    }
+
+    const pill = el("span", {
+      style: [
+        "display:inline-flex",
+        "align-items:center",
+        "padding:6px 10px",
+        "border-radius:20px",
+        "font-size:11px",
+        "font-weight:700",
+        "letter-spacing:.08em",
+        "color:" + color,
+        "background:" + background
+      ].join(";")
+    }, label);
+
+    return pill;
+  }
+
+  function buildHealthInterface() {
+    const health = makeSection(
+      "System Health",
+      "Live runtime information reported by the ONYX bot and shared API database."
+    );
+
+    const topLine = el("div", {
+      style: "display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:14px 0"
+    });
+
+    const statusGroup = el("div", {
+      style: "display:flex;align-items:center;gap:10px;flex-wrap:wrap"
+    });
+
+    statusGroup.append(
+      el("span", {
+        style: "color:var(--muted);font-size:12px"
+      }, "BOT STATUS"),
+      el("span", {id: "health-bot-status"}, "Loading…")
+    );
+
+    const refreshButton = el("button", {
+      type: "button",
+      class: "secondary-button",
+      id: "refresh-system-health"
+    }, "↻ Refresh health");
+
+    topLine.append(statusGroup, refreshButton);
+
+    const stats = el("div", {
+      class: "stat-grid",
+      style: "grid-template-columns:repeat(auto-fit,minmax(145px,1fr))"
+    });
+
+    stats.append(
+      makeHealthStat("Bot uptime", "health-uptime"),
+      makeHealthStat("Servers", "health-servers"),
+      makeHealthStat("Members", "health-members"),
+      makeHealthStat("Loaded cogs", "health-cogs")
+    );
+
+    const databaseSection = el("div", {
+      style: "margin-top:24px"
+    });
+
+    databaseSection.append(
+      el("h3", {}, "Database Connections")
+    );
+
+    const databaseGrid = el("div", {
+      style: "display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:12px"
+    });
+
+    const botDatabase = el("div", {
+      class: "asset-card",
+      style: "padding:16px"
+    });
+
+    botDatabase.append(
+      el("span", {class: "muted"}, "BOT DATABASE"),
+      el("div", {
+        id: "health-bot-database",
+        style: "margin-top:10px"
+      }, "Loading…")
+    );
+
+    const apiDatabase = el("div", {
+      class: "asset-card",
+      style: "padding:16px"
+    });
+
+    apiDatabase.append(
+      el("span", {class: "muted"}, "WEBSITE API DATABASE"),
+      el("div", {
+        id: "health-api-database",
+        style: "margin-top:10px"
+      }, "Loading…")
+    );
+
+    databaseGrid.append(botDatabase, apiDatabase);
+    databaseSection.append(databaseGrid);
+
+    const heartbeat = el("div", {
+      class: "asset-card",
+      style: "padding:16px;margin-top:14px"
+    });
+
+    heartbeat.append(
+      el("h3", {}, "Last Bot Heartbeat"),
+      el("div", {
+        id: "health-last-heartbeat",
+        style: "margin-top:8px;color:var(--teal)"
+      }, "Waiting for heartbeat…"),
+      el("div", {
+        id: "health-heartbeat-age",
+        class: "asset-meta",
+        style: "margin-top:6px"
+      }, "")
+    );
+
+    const cogSection = el("div", {
+      class: "asset-card",
+      style: "padding:16px;margin-top:14px"
+    });
+
+    cogSection.append(
+      el("div", {
+        style: "display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"
+      },
+        {},
+        ""
+      )
+    );
+
+    const cogHeading = el("h3", {}, "Loaded Extensions");
+    const cogCount = el("span", {
+      id: "health-cog-count",
+      class: "asset-meta"
+    }, "0 extensions");
+
+    const cogTitleRow = el("div", {
+      style: "display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"
+    });
+
+    cogTitleRow.append(cogHeading, cogCount);
+
+    const cogList = el("div", {
+      id: "health-cog-list",
+      style: "display:flex;flex-wrap:wrap;gap:8px;margin-top:14px"
+    });
+
+    cogSection.replaceChildren(cogTitleRow, cogList);
+
+    const footer = el("div", {
+      id: "health-last-refresh",
+      class: "status-line"
+    }, "Health data has not loaded yet.");
+
+    const error = el("div", {
+      id: "health-error",
+      class: "message error",
+      role: "status"
+    });
+
+    health.append(
+      topLine,
+      stats,
+      databaseSection,
+      heartbeat,
+      cogSection,
+      footer,
+      error
+    );
+
+    refreshButton.addEventListener("click", loadHealth);
+
+    return health;
+  }
+
+  async function loadHealth() {
+    if (healthLoading) return;
+
+    healthLoading = true;
+
+    const refreshButton = document.getElementById(
+      "refresh-system-health"
+    );
+
+    const errorNode = document.getElementById("health-error");
+
+    if (refreshButton) refreshButton.disabled = true;
+    if (errorNode) errorNode.textContent = "";
+
+    try {
+      const data = await request("/api/owner/system-health");
+
+      setHealthValue(
+        "health-bot-status",
+        ""
+      );
+
+      const statusNode = document.getElementById("health-bot-status");
+
+      if (statusNode) {
+        statusNode.replaceChildren(
+          makeStatusPill(data.bot_status)
+        );
+      }
+
+      setHealthValue(
+        "health-uptime",
+        formatDuration(data.uptime_seconds)
+      );
+
+      setHealthValue(
+        "health-servers",
+        Number(data.guild_count || 0).toLocaleString()
+      );
+
+      setHealthValue(
+        "health-members",
+        Number(data.member_count || 0).toLocaleString()
+      );
+
+      setHealthValue(
+        "health-cogs",
+        Number(data.loaded_cog_count || 0).toLocaleString()
+      );
+
+      const botDatabaseNode = document.getElementById(
+        "health-bot-database"
+      );
+
+      if (botDatabaseNode) {
+        botDatabaseNode.replaceChildren(
+          makeStatusPill(data.database_status)
+        );
+      }
+
+      const apiDatabaseNode = document.getElementById(
+        "health-api-database"
+      );
+
+      if (apiDatabaseNode) {
+        apiDatabaseNode.replaceChildren(
+          makeStatusPill(data.api_database_status)
+        );
+      }
+
+      setHealthValue(
+        "health-last-heartbeat",
+        formatTimestamp(data.last_heartbeat)
+      );
+
+      const heartbeatAge = data.heartbeat_age_seconds;
+
+      setHealthValue(
+        "health-heartbeat-age",
+        heartbeatAge === null || heartbeatAge === undefined
+          ? "No heartbeat age available."
+          : "Heartbeat age: " + heartbeatAge + " seconds"
+      );
+
+      const cogList = document.getElementById("health-cog-list");
+      const cogCount = document.getElementById("health-cog-count");
+
+      if (cogList) {
+        cogList.replaceChildren();
+
+        const cogs = Array.isArray(data.loaded_cogs)
+          ? data.loaded_cogs
+          : [];
+
+        if (cogs.length === 0) {
+          cogList.append(
+            el("span", {
+              class: "muted"
+            }, "No loaded extensions reported.")
+          );
+        } else {
+          cogs.forEach(cog => {
+            cogList.append(
+              el("span", {
+                style: [
+                  "padding:7px 10px",
+                  "border:1px solid var(--line)",
+                  "background:#102024",
+                  "border-radius:5px",
+                  "font-size:11px",
+                  "overflow-wrap:anywhere"
+                ].join(";")
+              }, String(cog))
+            );
+          });
+        }
+
+        if (cogCount) {
+          cogCount.textContent = cogs.length + " extensions";
+        }
+      }
+
+      setHealthValue(
+        "health-last-refresh",
+        "Last refreshed: " + new Date().toLocaleTimeString()
+      );
+
+    } catch (error) {
+      if (errorNode) {
+        errorNode.textContent =
+          "Unable to retrieve system health: " + error.message;
+      }
+
+      setHealthValue(
+        "health-last-refresh",
+        "Health check failed at " + new Date().toLocaleTimeString()
+      );
+
+    } finally {
+      healthLoading = false;
+
+      if (refreshButton) {
+        refreshButton.disabled = false;
+      }
+    }
+  }
+
+  function startHealthRefresh() {
+    if (healthRefreshTimer) {
+      clearInterval(healthRefreshTimer);
+    }
+
+    loadHealth();
+
+    healthRefreshTimer = setInterval(() => {
+      const settingsView = document.querySelector(
+        '[data-dashboard-panel="settings"]'
+      );
+
+      if (
+        settingsView &&
+        !settingsView.hidden &&
+        !document.hidden
+      ) {
+        loadHealth();
+      }
+    }, 30000);
+  }
+
   function buildInterface() {
     panel.replaceChildren();
 
@@ -175,7 +596,7 @@
       el(
         "p",
         {class: "muted"},
-        "Manage ONYX-wide settings from one place. Saved settings are stored centrally and will apply to the running bot as runtime integration is completed."
+        "Manage ONYX-wide settings from one place. Saved settings are stored centrally and applied by the running bot."
       )
     );
 
@@ -226,7 +647,7 @@
     const maintenanceToggle = makeToggle(
       "system-maintenance-enabled",
       "Enable maintenance mode",
-      "When runtime integration is active, regular users will receive the maintenance message instead of using commands.",
+      "When enabled, regular users receive the maintenance message instead of using commands.",
       false
     );
 
@@ -245,10 +666,8 @@
     // FEATURE CONTROLS
     const features = makeSection(
       "Feature Controls",
-      "Enable or disable supported ONYX systems globally. These switches are saved centrally; runtime enforcement will be connected separately."
+      "Enable or disable supported ONYX systems globally."
     );
-
-    const featureInputs = {};
 
     FEATURES.forEach(([key, title, description]) => {
       const toggle = makeToggle(
@@ -258,7 +677,6 @@
         true
       );
 
-      featureInputs[key] = toggle.input;
       features.append(toggle.wrapper);
     });
 
@@ -280,30 +698,20 @@
     // ANNOUNCEMENTS
     const announcements = makeSection(
       "Announcements",
-      "Control whether system-wide announcements are enabled. Publishing announcements will be connected in a later step."
+      "Control whether system-wide announcements are enabled."
     );
 
     const announcementsToggle = makeToggle(
       "system-announcements-enabled",
       "Enable announcements",
-      "Allow the announcement system to publish global notices once connected.",
+      "Allow the announcement system to publish global notices.",
       true
     );
 
     announcements.append(announcementsToggle.wrapper);
 
-    // HEALTH
-    const health = makeSection(
-      "System Health",
-      "Live bot uptime, loaded cogs, database status, and API health will be displayed here after the runtime health connection is added."
-    );
-
-    health.append(
-      el("div", {
-        class: "coming-soon",
-        id: "system-health-status"
-      }, "Runtime health reporting is not connected yet. No health values are being assumed.")
-    );
+    // LIVE HEALTH
+    const health = buildHealthInterface();
 
     // ACTIONS
     const actions = el("div", {
@@ -500,14 +908,19 @@
 
       buildInterface();
       await loadSettings();
+      startHealthRefresh();
 
       const settingsButton = document.querySelector(
         '[data-dashboard-view="settings"]'
       );
 
       if (settingsButton) {
-        settingsButton.addEventListener("click", loadSettings);
+        settingsButton.addEventListener("click", () => {
+          loadSettings();
+          loadHealth();
+        });
       }
+
     } catch (error) {
       panel.replaceChildren(
         el("h2", {}, "System settings unavailable"),
