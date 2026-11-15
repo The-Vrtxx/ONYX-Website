@@ -465,26 +465,39 @@
     return canvas;
   }
 
-  function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
-    if (suppliedUrl) {
-      return suppliedUrl;
+  
+function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
+  const imageUrl =
+    suppliedUrl ||
+    (metadata && metadata.image_url) ||
+    null;
+
+  if (imageUrl) {
+    // Asset Library URLs beginning with / belong to the API,
+    // not the website hosting the shop.
+    if (imageUrl.startsWith("/")) {
+      return API + imageUrl;
     }
 
-    if (metadata && metadata.image_url) {
-      return metadata.image_url;
-    }
+    return imageUrl;
+  }
 
-    const imageCategories = new Set([
-      "frame",
-      "border",
-      "background",
-      "emblem",
-      "badge"
-    ]);
+  const imageCategories = new Set([
+    "frame",
+    "border",
+    "background",
+    "emblem",
+    "badge"
+  ]);
 
-    if (!imageCategories.has(category) || !itemId) {
-      return null;
-    }
+  if (!imageCategories.has(category) || !itemId) {
+    return null;
+  }
+
+  return API + "/api/assets/media/" +
+    encodeURIComponent(category + ":" + itemId);
+}
+
 
     // Asset Library media fallback. This lets shop previews retrieve
     // uploaded artwork even when the catalog image_url field is empty.
