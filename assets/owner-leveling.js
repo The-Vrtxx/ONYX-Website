@@ -52,6 +52,15 @@
     status.className = isError ? "message error" : "message";
   }
 
+  function createStat(label, id) {
+    const card = element("div", {class: "stat-card"});
+    card.append(
+      element("span", {}, label),
+      element("strong", {id}, "—")
+    );
+    return card;
+  }
+
   function buildInterface() {
     container.replaceChildren();
 
@@ -115,11 +124,40 @@
       "How long a user must wait before earning XP again."
     );
 
+    const doubleXPWrapper = element("div", {
+      class: "wide",
+      style: "display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid var(--border);border-radius:12px;"
+    });
+
+    const doubleXPText = element("div");
+    doubleXPText.append(
+      element("strong", {}, "Double XP"),
+      element(
+        "p",
+        {class: "muted"},
+        "When enabled, eligible messages award twice the normal XP globally."
+      )
+    );
+
+    const toggleLabel = element("label", {
+      style: "display:flex;align-items:center;gap:10px;cursor:pointer;"
+    });
+
+    const toggle = element("input", {
+      id: "global-double-xp",
+      type: "checkbox",
+      style: "width:20px;height:20px;accent-color:var(--accent);"
+    });
+
+    toggleLabel.append(toggle, element("span", {}, "Enabled"));
+    doubleXPWrapper.append(doubleXPText, toggleLabel);
+
     form.append(
       description,
       minField.wrapper,
       maxField.wrapper,
-      cooldownField.wrapper
+      cooldownField.wrapper,
+      doubleXPWrapper
     );
 
     const buttons = element("div", {
@@ -168,7 +206,8 @@
     summary.append(
       createStat("Minimum XP", "summary-min-xp"),
       createStat("Maximum XP", "summary-max-xp"),
-      createStat("Cooldown", "summary-cooldown")
+      createStat("Cooldown", "summary-cooldown"),
+      createStat("Double XP", "summary-double-xp")
     );
 
     container.append(summary, form, status, updated);
@@ -179,13 +218,14 @@
       const minXP = Number(minField.input.value);
       const maxXP = Number(maxField.input.value);
       const cooldown = Number(cooldownField.input.value);
+      const doubleXP = toggle.checked;
 
       if (
         !Number.isInteger(minXP) ||
         !Number.isInteger(maxXP) ||
         !Number.isInteger(cooldown)
       ) {
-        return showMessage("All settings must be whole numbers.", true);
+        return showMessage("All numeric settings must be whole numbers.", true);
       }
 
       if (minXP < 1 || maxXP > 1000 || minXP > maxXP) {
@@ -213,7 +253,8 @@
             body: JSON.stringify({
               min_xp: minXP,
               max_xp: maxXP,
-              cooldown_seconds: cooldown
+              cooldown_seconds: cooldown,
+              double_xp_enabled: doubleXP
             })
           }
         );
@@ -230,15 +271,6 @@
     reload.addEventListener("click", loadSettings);
   }
 
-  function createStat(label, id) {
-    const card = element("div", {class: "stat-card"});
-    card.append(
-      element("span", {}, label),
-      element("strong", {id}, "—")
-    );
-    return card;
-  }
-
   function displaySettings(settings) {
     if (!settings) return;
 
@@ -246,6 +278,9 @@
     document.getElementById("global-max-xp").value = settings.max_xp;
     document.getElementById("global-xp-cooldown").value =
       settings.cooldown_seconds;
+
+    document.getElementById("global-double-xp").checked =
+      Boolean(settings.double_xp_enabled);
 
     document.getElementById("summary-min-xp").textContent =
       numberFormat.format(settings.min_xp);
@@ -255,6 +290,9 @@
 
     document.getElementById("summary-cooldown").textContent =
       numberFormat.format(settings.cooldown_seconds) + "s";
+
+    document.getElementById("summary-double-xp").textContent =
+      settings.double_xp_enabled ? "Enabled (2×)" : "Disabled";
 
     const updated = document.getElementById("leveling-updated");
 
