@@ -3,9 +3,6 @@
  * ONYX SHARED COSMETIC PREVIEW ENGINE
  * Used by the Owner Asset Library, Prestige Shop,
  * and Member Profile Customizer.
- *
- * This renderer is preview-only. It never purchases,
- * equips, or saves cosmetics.
  */
 
 (function () {
@@ -14,36 +11,12 @@
   const API = "https://api.onyxdiscord.com";
 
   const THEMES = {
-    onyx: {
-      start: "#0c121f",
-      end: "#162737",
-      accent: "#23d2c8"
-    },
-    frost: {
-      start: "#0d192a",
-      end: "#22425b",
-      accent: "#87dcff"
-    },
-    inferno: {
-      start: "#240f13",
-      end: "#4c1c19",
-      accent: "#ff7d41"
-    },
-    toxic: {
-      start: "#0c1e19",
-      end: "#183e2e",
-      accent: "#7deb69"
-    },
-    eclipse: {
-      start: "#141127",
-      end: "#302248",
-      accent: "#b587ff"
-    },
-    void: {
-      start: "#080812",
-      end: "#1b1931",
-      accent: "#a091ff"
-    }
+    onyx: { start: "#0c121f", end: "#162737", accent: "#23d2c8" },
+    frost: { start: "#0d192a", end: "#22425b", accent: "#87dcff" },
+    inferno: { start: "#240f13", end: "#4c1c19", accent: "#ff7d41" },
+    toxic: { start: "#0c1e19", end: "#183e2e", accent: "#7deb69" },
+    eclipse: { start: "#141127", end: "#302248", accent: "#b587ff" },
+    void: { start: "#080812", end: "#1b1931", accent: "#a091ff" }
   };
 
   const FRAMES = {
@@ -64,26 +37,11 @@
   };
 
   const EMBLEMS = {
-    veteran: {
-      label: "VETERAN",
-      color: "#91b9dc"
-    },
-    elite: {
-      label: "ELITE",
-      color: "#5acfff"
-    },
-    champion: {
-      label: "CHAMPION",
-      color: "#ffcd4b"
-    },
-    warlord: {
-      label: "WARLORD",
-      color: "#eb555a"
-    },
-    mythic: {
-      label: "MYTHIC",
-      color: "#cd6eff"
-    }
+    veteran: { label: "VETERAN", color: "#91b9dc" },
+    elite: { label: "ELITE", color: "#5acfff" },
+    champion: { label: "CHAMPION", color: "#ffcd4b" },
+    warlord: { label: "WARLORD", color: "#eb555a" },
+    mythic: { label: "MYTHIC", color: "#cd6eff" }
   };
 
   const DEFAULT_PROFILE = {
@@ -99,13 +57,11 @@
   };
 
   function getTheme(id) {
-    return THEMES[String(id || "onyx").toLowerCase()]
-      || THEMES.onyx;
+    return THEMES[String(id || "onyx").toLowerCase()] || THEMES.onyx;
   }
 
   function getFrame(id) {
-    return FRAMES[String(id || "default").toLowerCase()]
-      || FRAMES.default;
+    return FRAMES[String(id || "default").toLowerCase()] || FRAMES.default;
   }
 
   function getEffect(id) {
@@ -114,7 +70,6 @@
 
   function roundedRect(ctx, x, y, w, h, radius) {
     const r = Math.min(radius, w / 2, h / 2);
-
     ctx.beginPath();
     ctx.moveTo(x + r, y);
     ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -126,17 +81,14 @@
 
   function fitText(ctx, value, maxWidth) {
     let text = String(value || "");
-
     while (text.length && ctx.measureText(text).width > maxWidth) {
       text = text.slice(0, -2) + "…";
     }
-
     return text;
   }
 
   function drawEffect(ctx, effect, width, height) {
     const color = getEffect(effect);
-
     if (!color) return;
 
     ctx.save();
@@ -184,15 +136,11 @@
       ];
 
       ctx.lineWidth = 6;
-
       corners.forEach(points => {
         ctx.beginPath();
         points.forEach((point, index) => {
-          if (index === 0) {
-            ctx.moveTo(point[0], point[1]);
-          } else {
-            ctx.lineTo(point[0], point[1]);
-          }
+          if (index === 0) ctx.moveTo(point[0], point[1]);
+          else ctx.lineTo(point[0], point[1]);
         });
         ctx.stroke();
       });
@@ -206,34 +154,22 @@
       ].forEach(([inset, lineWidth, alpha]) => {
         ctx.strokeStyle = `rgba(175,115,255,${alpha})`;
         ctx.lineWidth = lineWidth;
-        roundedRect(
-          ctx,
-          inset,
-          inset,
-          width - inset * 2,
-          height - inset * 2,
-          34
-        );
+        roundedRect(ctx, inset, inset, width - inset * 2, height - inset * 2, 34);
         ctx.stroke();
       });
 
       ctx.strokeStyle = "#ebdcff";
       ctx.lineWidth = 3;
 
-      [
-        [80, 42],
-        [1015, 55],
-        [1040, 300],
-        [75, 315],
-        [550, 28]
-      ].forEach(([x, y]) => {
-        ctx.beginPath();
-        ctx.moveTo(x - 9, y);
-        ctx.lineTo(x + 9, y);
-        ctx.moveTo(x, y - 9);
-        ctx.lineTo(x, y + 9);
-        ctx.stroke();
-      });
+      [[80, 42], [1015, 55], [1040, 300], [75, 315], [550, 28]]
+        .forEach(([x, y]) => {
+          ctx.beginPath();
+          ctx.moveTo(x - 9, y);
+          ctx.lineTo(x + 9, y);
+          ctx.moveTo(x, y - 9);
+          ctx.lineTo(x, y + 9);
+          ctx.stroke();
+        });
     }
 
     ctx.restore();
@@ -243,7 +179,6 @@
     const color = getFrame(frame);
 
     ctx.save();
-
     ctx.strokeStyle = color;
     ctx.lineWidth = 5;
     roundedRect(ctx, 18, 18, width - 36, height - 36, 28);
@@ -285,9 +220,7 @@
 
     if (custom) {
       ctx.save();
-
       ctx.translate(890, 185);
-
       ctx.fillStyle = "#080c17";
       ctx.strokeStyle = custom.color;
       ctx.lineWidth = 7;
@@ -321,7 +254,6 @@
       ctx.fillText("ONYX", 0, 3);
       ctx.font = "bold 10px Arial";
       ctx.fillText(custom.label, 0, 27);
-
       ctx.restore();
       return;
     }
@@ -338,7 +270,6 @@
     ctx.fillStyle = "#0a111c";
     ctx.strokeStyle = color;
     ctx.lineWidth = 5;
-
     ctx.beginPath();
     ctx.arc(0, 0, 70, 0, Math.PI * 2);
     ctx.fill();
@@ -347,12 +278,7 @@
     ctx.fillStyle = color;
     ctx.textAlign = "center";
     ctx.font = "bold 32px Arial";
-    ctx.fillText(
-      prestige >= 10 ? "M" : String(prestige || 0),
-      0,
-      12
-    );
-
+    ctx.fillText(prestige >= 10 ? "M" : String(prestige || 0), 0, 12);
     ctx.restore();
   }
 
@@ -364,12 +290,10 @@
     const ctx = canvas.getContext("2d");
     const width = 1100;
     const height = 360;
-
     canvas.width = width;
     canvas.height = height;
 
     const data = Object.assign({}, DEFAULT_PROFILE, profile);
-
     const theme = getTheme(cosmetics.theme_id);
     const frame = String(cosmetics.frame_id || "default").toLowerCase();
     const effect = String(cosmetics.effect_id || "none").toLowerCase();
@@ -378,7 +302,6 @@
     const gradient = ctx.createLinearGradient(0, 0, width, 0);
     gradient.addColorStop(0, theme.start);
     gradient.addColorStop(1, theme.end);
-
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 
@@ -414,11 +337,7 @@
 
     ctx.fillStyle = "#f5f9fc";
     ctx.font = "bold 43px Arial";
-    ctx.fillText(
-      fitText(ctx, data.displayName, 650),
-      58,
-      168
-    );
+    ctx.fillText(fitText(ctx, data.displayName, 650), 58, 168);
 
     const stage = data.masterMode
       ? `PRESTIGE MASTER  •  LEVEL ${Number(data.masterLevel).toLocaleString()} / 1,000`
@@ -442,11 +361,7 @@
 
     ctx.fillStyle = "#cddce6";
     ctx.font = "bold 16px Arial";
-    ctx.fillText(
-      `XP  ${xp.toLocaleString()} / ${needed.toLocaleString()}`,
-      60,
-      300
-    );
+    ctx.fillText(`XP  ${xp.toLocaleString()} / ${needed.toLocaleString()}`, 60, 300);
 
     ctx.fillStyle = "#050a12";
     roundedRect(ctx, 260, 278, 640, 20, 10);
@@ -465,42 +380,32 @@
     return canvas;
   }
 
-  
-function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
-  const imageUrl =
-    suppliedUrl ||
-    (metadata && metadata.image_url) ||
-    null;
+  function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
+    const imageUrl =
+      suppliedUrl ||
+      (metadata && metadata.image_url) ||
+      null;
 
-  if (imageUrl) {
-    // Asset Library URLs beginning with / belong to the API,
-    // not the website hosting the shop.
-    if (imageUrl.startsWith("/")) {
-      return API + imageUrl;
+    if (imageUrl) {
+      // Asset Library image URLs are relative to the API host.
+      if (imageUrl.startsWith("/")) {
+        return API + imageUrl;
+      }
+      return imageUrl;
     }
 
-    return imageUrl;
-  }
+    const imageCategories = new Set([
+      "frame",
+      "border",
+      "background",
+      "emblem",
+      "badge"
+    ]);
 
-  const imageCategories = new Set([
-    "frame",
-    "border",
-    "background",
-    "emblem",
-    "badge"
-  ]);
+    if (!imageCategories.has(category) || !itemId) {
+      return null;
+    }
 
-  if (!imageCategories.has(category) || !itemId) {
-    return null;
-  }
-
-  return API + "/api/assets/media/" +
-    encodeURIComponent(category + ":" + itemId);
-}
-
-
-    // Asset Library media fallback. This lets shop previews retrieve
-    // uploaded artwork even when the catalog image_url field is empty.
     return API + "/api/assets/media/" +
       encodeURIComponent(category + ":" + itemId);
   }
@@ -516,7 +421,6 @@ function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
 
     canvas.width = width;
     canvas.height = height;
-
     ctx.clearRect(0, 0, width, height);
 
     const category = String(asset.category || "cosmetic").toLowerCase();
@@ -542,11 +446,9 @@ function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
       const gradient = ctx.createLinearGradient(35, 30, 385, 230);
       gradient.addColorStop(0, theme.start);
       gradient.addColorStop(1, theme.end);
-
       ctx.fillStyle = gradient;
       roundedRect(ctx, 35, 35, 350, 205, 14);
       ctx.fill();
-
       ctx.fillStyle = theme.accent;
       ctx.fillRect(55, 205, 310, 7);
 
@@ -554,7 +456,6 @@ function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
       ctx.fillStyle = "#101c23";
       roundedRect(ctx, 75, 45, 270, 170, 15);
       ctx.fill();
-
       ctx.strokeStyle = frame;
       ctx.lineWidth = 10;
       roundedRect(ctx, 75, 45, 270, 170, 15);
@@ -562,7 +463,6 @@ function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
 
     } else if (category === "effect") {
       const color = effect || "#28dcd2";
-
       ctx.save();
       ctx.shadowColor = color;
       ctx.shadowBlur = 35;
@@ -595,12 +495,10 @@ function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
       ctx.fillStyle = "#13252b";
       roundedRect(ctx, 95, 55, 230, 145, 16);
       ctx.fill();
-
       ctx.strokeStyle = "#28dcd2";
       ctx.lineWidth = 3;
       roundedRect(ctx, 95, 55, 230, 145, 16);
       ctx.stroke();
-
       ctx.fillStyle = "#28dcd2";
       ctx.font = "bold 30px Arial";
       ctx.textAlign = "center";
@@ -612,7 +510,6 @@ function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
       ctx.font = "bold 17px Arial";
       ctx.textAlign = "center";
       ctx.fillText(fitText(ctx, name, 360), 210, 270);
-
       ctx.fillStyle = "#8da7ae";
       ctx.font = "11px Arial";
       ctx.fillText(category.toUpperCase(), 210, 288);
@@ -625,13 +522,10 @@ function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
       image.crossOrigin = "anonymous";
 
       image.onload = () => {
-        // Clear only the artwork preview area, keeping the card
-        // background and the name/category captions intact.
         ctx.clearRect(20, 20, width - 40, 220);
 
         const maxWidth = 300;
         const maxHeight = 205;
-
         const scale = Math.min(
           maxWidth / image.width,
           maxHeight / image.height,
@@ -653,10 +547,7 @@ function getAssetImageUrl(category, itemId, suppliedUrl, metadata) {
       };
 
       image.onerror = () => {
-        console.warn(
-          "ONYX preview image could not be loaded:",
-          imageUrl
-        );
+        console.warn("ONYX preview image could not be loaded:", imageUrl);
       };
 
       image.src = imageUrl;
