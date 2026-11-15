@@ -10,6 +10,7 @@ const $ = id => document.getElementById(id);
 
 const CATEGORY_NAMES = {
   frame: "Frames",
+  border: "Frames",
   theme: "Themes",
   background: "Backgrounds",
   emblem: "Emblems",
@@ -380,7 +381,11 @@ function renderShop() {
       return item.owned;
     }
 
-    return item.category === currentFilter;
+    // The API groups borders into the Frames section.
+    // Keep the raw item category for purchase and equipment actions.
+    const section = item.section || item.category;
+
+    return section === currentFilter;
   });
 
   const grid = $("shop-grid");
