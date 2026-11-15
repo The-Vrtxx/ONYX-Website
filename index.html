@@ -5,11 +5,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <!-- ONYX BRANDING -->
   <meta name="theme-color" content="#00dfe5">
   <meta name="description" content="ONYX is an all-in-one Discord bot for moderation, server security, automation, global leveling, Prestige progression, and community management.">
 
-  <!-- DISCORD EMBED / OPEN GRAPH -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ONYX">
   <meta property="og:title" content="ONYX — The Ultimate Discord Bot">
@@ -21,17 +19,13 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 
-  <!-- TWITTER / X PREVIEW -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="ONYX — The Ultimate Discord Bot">
   <meta name="twitter:description" content="Your server. Your rules. ONYX handles the rest.">
   <meta name="twitter:image" content="https://onyxdiscord.com/assets/discord-preview.png">
 
-  <!-- WEBSITE ICON -->
   <link rel="icon" type="image/png" href="/assets/onyx-mark.png">
-
   <title>ONYX — The Ultimate Discord Bot</title>
-
   <link rel="stylesheet" href="/assets/styles.css">
 
   <style>
@@ -82,6 +76,107 @@
       margin: 10px 0 0;
     }
 
+    .xp-home {
+      max-width: 760px;
+      margin: 30px auto 0;
+      padding: 25px;
+      border: 1px solid #1b5558;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at top right,rgba(0,223,229,.12),transparent 45%),
+        linear-gradient(145deg,#101f23,#091114);
+      text-align: left;
+    }
+
+    .xp-home-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .xp-home-header h2 {
+      margin: 0;
+      font-size: 1.35rem;
+    }
+
+    .xp-live-indicator {
+      color: #62dfd0;
+      font-size: .72rem;
+      letter-spacing: .1em;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .xp-live-indicator::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 7px;
+      border-radius: 50%;
+      background: #62dfd0;
+      box-shadow: 0 0 10px #62dfd0;
+      vertical-align: middle;
+    }
+
+    .xp-home-grid {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 12px;
+    }
+
+    .xp-home-stat {
+      padding: 17px;
+      border: 1px solid #20383c;
+      border-radius: 12px;
+      background: rgba(3,12,15,.55);
+    }
+
+    .xp-home-label {
+      display: block;
+      color: #91a9ad;
+      font-size: .72rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .xp-home-value {
+      display: block;
+      margin-top: 8px;
+      color: #62dfd0;
+      font-size: clamp(1.3rem,4vw,1.8rem);
+      font-weight: 800;
+    }
+
+    .xp-home-description {
+      margin-top: 6px;
+      color: #82999d;
+      font-size: .75rem;
+    }
+
+    .xp-home-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+      color: #81969a;
+      font-size: .75rem;
+    }
+
+    .xp-home-footer a {
+      color: #62dfd0;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .xp-home-footer a:hover {
+      text-decoration: underline;
+    }
+
     @media(max-width:560px) {
       .live-stats {
         gap: 9px;
@@ -89,6 +184,22 @@
 
       .live-stat {
         padding: 18px 10px;
+      }
+
+      .xp-home {
+        padding: 18px 14px;
+      }
+
+      .xp-home-grid {
+        gap: 9px;
+      }
+
+      .xp-home-stat {
+        padding: 14px 11px;
+      }
+
+      .xp-home-header h2 {
+        font-size: 1.15rem;
       }
     }
   </style>
@@ -171,6 +282,49 @@
   <p class="stats-updated" id="onyx-stats-updated">
     Loading live statistics…
   </p>
+
+  <!-- GLOBAL XP STATUS -->
+  <section class="xp-home" aria-label="Global XP status">
+
+    <div class="xp-home-header">
+      <h2>GLOBAL XP SYSTEM</h2>
+      <span class="xp-live-indicator">LIVE STATUS</span>
+    </div>
+
+    <div class="xp-home-grid">
+
+      <div class="xp-home-stat">
+        <span class="xp-home-label">XP Multiplier</span>
+        <strong class="xp-home-value" id="home-xp-multiplier">—</strong>
+        <span class="xp-home-description">Global XP rate</span>
+      </div>
+
+      <div class="xp-home-stat">
+        <span class="xp-home-label">Double XP</span>
+        <strong class="xp-home-value" id="home-double-xp">—</strong>
+        <span class="xp-home-description">Current event status</span>
+      </div>
+
+      <div class="xp-home-stat">
+        <span class="xp-home-label">XP Per Message</span>
+        <strong class="xp-home-value" id="home-xp-range">—</strong>
+        <span class="xp-home-description">Before multiplier</span>
+      </div>
+
+      <div class="xp-home-stat">
+        <span class="xp-home-label">XP Cooldown</span>
+        <strong class="xp-home-value" id="home-xp-cooldown">—</strong>
+        <span class="xp-home-description">Between eligible messages</span>
+      </div>
+
+    </div>
+
+    <div class="xp-home-footer">
+      <span id="home-xp-updated">Loading global settings…</span>
+      <a href="/xp">VIEW XP DETAILS →</a>
+    </div>
+
+  </section>
 
 </section>
 
@@ -278,6 +432,9 @@
   const ONYX_STATS_API =
     "https://onyx-website-ai.onrender.com/api/stats";
 
+  const ONYX_XP_API =
+    "https://api.onyxdiscord.com/api/public/leveling";
+
   const numberFormat = new Intl.NumberFormat("en-US");
 
   async function loadOnyxStats() {
@@ -336,9 +493,102 @@
     }
   }
 
+  async function loadGlobalXPStatus() {
+    const updatedEl =
+      document.getElementById("home-xp-updated");
+
+    try {
+      const response = await fetch(ONYX_XP_API, {
+        method: "GET",
+        headers: {"Accept": "application/json"},
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          "Global XP API returned HTTP " + response.status
+        );
+      }
+
+      const data = await response.json();
+      const settings = data.settings || data;
+
+      const minXP = Number(settings.min_xp);
+      const maxXP = Number(settings.max_xp);
+      const cooldown = Number(settings.cooldown_seconds);
+
+      const doubleXP =
+        settings.double_xp_enabled === true;
+
+      const multiplier =
+        Number(settings.multiplier || (doubleXP ? 2 : 1));
+
+      document.getElementById("home-xp-multiplier")
+        .textContent = multiplier + "×";
+
+      const doubleEl =
+        document.getElementById("home-double-xp");
+
+      doubleEl.textContent =
+        doubleXP ? "ACTIVE" : "INACTIVE";
+
+      doubleEl.style.color =
+        doubleXP ? "#62dfd0" : "#a0adb0";
+
+      document.getElementById("home-xp-range")
+        .textContent =
+          Number.isFinite(minXP) && Number.isFinite(maxXP)
+            ? minXP + " – " + maxXP
+            : "—";
+
+      document.getElementById("home-xp-cooldown")
+        .textContent =
+          Number.isFinite(cooldown)
+            ? cooldown + " sec"
+            : "—";
+
+      if (settings.updated_at) {
+        const updated = new Date(settings.updated_at);
+
+        updatedEl.textContent =
+          "Settings updated " +
+          updated.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit"
+          });
+      } else {
+        updatedEl.textContent =
+          "Global settings loaded successfully";
+      }
+
+    } catch (error) {
+      console.error(
+        "Unable to load global XP status:",
+        error
+      );
+
+      updatedEl.textContent =
+        "Global XP settings are temporarily unavailable.";
+
+      document.getElementById("home-xp-multiplier")
+        .textContent = "—";
+
+      document.getElementById("home-double-xp")
+        .textContent = "—";
+
+      document.getElementById("home-xp-range")
+        .textContent = "—";
+
+      document.getElementById("home-xp-cooldown")
+        .textContent = "—";
+    }
+  }
+
   loadOnyxStats();
+  loadGlobalXPStatus();
 
   window.setInterval(loadOnyxStats, 60000);
+  window.setInterval(loadGlobalXPStatus, 30000);
 </script>
 
 <script src="/assets/site.js"></script>
