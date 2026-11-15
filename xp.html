@@ -1,0 +1,367 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#05090b">
+  <meta name="description" content="View ONYX global XP settings, leveling rates, cooldowns, and live Double XP status.">
+  <link rel="icon" href="/assets/onyx-mark.png">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <title>Global XP Status — ONYX</title>
+
+  <style>
+    .xp-hero {
+      padding: 85px 0 35px;
+      text-align: center;
+    }
+
+    .xp-hero h1 {
+      font-size: clamp(48px, 7vw, 82px);
+    }
+
+    .xp-hero .lead {
+      margin: auto;
+    }
+
+    .xp-status {
+      max-width: 900px;
+      margin: 35px auto 75px;
+    }
+
+    .xp-multiplier {
+      padding: 36px 25px;
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background:
+        radial-gradient(ellipse at center, #103638 0, transparent 70%),
+        linear-gradient(145deg, #0d191c, #080e11);
+    }
+
+    .xp-multiplier-label {
+      color: var(--muted);
+      font: 11px 'DM Mono', monospace;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .xp-multiplier-value {
+      display: block;
+      margin: 12px 0;
+      color: var(--teal);
+      font-size: clamp(65px, 12vw, 110px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -.08em;
+      text-shadow: 0 0 35px #00e6d244;
+    }
+
+    .xp-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 13px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      color: var(--muted);
+      font: 11px 'DM Mono', monospace;
+      letter-spacing: .08em;
+    }
+
+    .xp-state.active {
+      color: #62dfb0;
+      border-color: #24775a;
+      background: #10251d;
+    }
+
+    .xp-state.inactive {
+      color: #aab9bc;
+      border-color: var(--line);
+      background: #101719;
+    }
+
+    .xp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 15px;
+    }
+
+    .xp-card {
+      padding: 24px 18px;
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: linear-gradient(145deg, #0d191c, #080e11);
+    }
+
+    .xp-card span {
+      display: block;
+      color: var(--muted);
+      font: 10px 'DM Mono', monospace;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .xp-card strong {
+      display: block;
+      margin-top: 9px;
+      color: var(--teal);
+      font-size: clamp(25px, 4vw, 34px);
+      font-weight: 800;
+    }
+
+    .xp-explainer {
+      margin-top: 35px;
+      padding: 25px;
+      border: 1px solid #23605c;
+      border-radius: 4px;
+      background: #0b1b1d;
+    }
+
+    .xp-explainer h2 {
+      margin: 0 0 8px;
+      font-size: 21px;
+    }
+
+    .xp-explainer p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .xp-updated {
+      margin-top: 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .xp-error {
+      color: #f0a0a0;
+    }
+
+    @media(max-width:650px) {
+      .xp-hero {
+        padding-top: 60px;
+      }
+
+      .xp-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .xp-card {
+        padding: 19px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/">
+    <img class="brand-mark" src="/assets/onyx-mark.png" alt="">
+    ONYX
+  </a>
+
+  <button class="menu-toggle" type="button"
+    aria-label="Toggle navigation" aria-expanded="false">☰</button>
+
+  <nav>
+    <a href="/">HOME</a>
+    <a href="/features">FEATURES</a>
+    <a href="/xp">GLOBAL XP</a>
+    <a href="/docs">DOCUMENTATION</a>
+    <a href="/commands/">COMMANDS</a>
+    <a href="/shop/">PRESTIGE SHOP</a>
+    <a href="/support">SUPPORT</a>
+    <a class="nav-cta"
+      href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8"
+      target="_blank" rel="noopener">ADD ONYX ↗</a>
+  </nav>
+</header>
+
+<main>
+
+  <section class="xp-hero wrap">
+    <div class="eyebrow">ONYX / GLOBAL PROGRESSION</div>
+    <h1>Global XP.<br><em>Live status.</em></h1>
+    <p class="lead">
+      See how the ONYX global leveling system is currently configured.
+      Your progression follows you across every server using ONYX.
+    </p>
+  </section>
+
+  <section class="xp-status wrap">
+
+    <div class="xp-multiplier">
+      <span class="xp-multiplier-label">Current Global XP Multiplier</span>
+      <strong class="xp-multiplier-value" id="xp-multiplier">—</strong>
+      <span class="xp-state" id="xp-state">LOADING STATUS</span>
+    </div>
+
+    <div class="xp-grid">
+
+      <div class="xp-card">
+        <span>Minimum XP</span>
+        <strong id="xp-min">—</strong>
+      </div>
+
+      <div class="xp-card">
+        <span>Maximum XP</span>
+        <strong id="xp-max">—</strong>
+      </div>
+
+      <div class="xp-card">
+        <span>XP Cooldown</span>
+        <strong id="xp-cooldown">—</strong>
+      </div>
+
+    </div>
+
+    <div class="xp-explainer">
+      <h2 id="xp-explainer-title">Global leveling system</h2>
+      <p id="xp-explainer-text">
+        Loading the current ONYX global leveling configuration.
+      </p>
+    </div>
+
+    <p class="xp-updated" id="xp-updated">
+      Connecting to ONYX...
+    </p>
+
+  </section>
+
+  <section class="statement">
+    <div class="wrap">
+      <div class="eyebrow">ONE PROFILE · EVERY SERVER</div>
+      <h2>Your activity.<br><em>Your progression.</em></h2>
+      <p>
+        ONYX global XP keeps your leveling progression connected
+        across participating servers. Keep chatting, earn XP,
+        reach new levels, and work toward your next Prestige.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section bottom-cta">
+    <div>
+      <div class="eyebrow">START PROGRESSING</div>
+      <h2>Join the<br><em>ONYX network.</em></h2>
+    </div>
+
+    <a class="button primary"
+      href="https://discord.com/oauth2/authorize?client_id=1566544548820422658&amp;scope=bot%20applications.commands&amp;permissions=8"
+      target="_blank" rel="noopener">ADD ONYX ↗</a>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/onyx-mark.png" alt="">
+      ONYX
+    </a>
+
+    <span>© <span data-year></span> ONYX Development · Vrtx</span>
+
+    <div>
+      <a href="/features">Features</a>
+      <a href="/xp">Global XP</a>
+      <a href="/docs">Documentation</a>
+      <a href="/commands/">Commands</a>
+      <a href="/shop/">Prestige Shop</a>
+      <a href="/support">Support</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  const API = "https://api.onyxdiscord.com";
+  const numberFormat = new Intl.NumberFormat("en-US");
+
+  const $ = id => document.getElementById(id);
+
+  async function loadXPStatus() {
+    const updated = $("xp-updated");
+
+    try {
+      const response = await fetch(API + "/api/public/leveling", {
+        method: "GET",
+        headers: {"Accept": "application/json"},
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to retrieve global XP settings.");
+      }
+
+      const data = await response.json();
+      const settings = data.settings;
+
+      if (!settings) {
+        throw new Error("Global XP settings were not returned.");
+      }
+
+      const enabled = Boolean(settings.double_xp_enabled);
+      const multiplier = Number(settings.multiplier) || (enabled ? 2 : 1);
+
+      $("xp-multiplier").textContent = multiplier + "×";
+      $("xp-min").textContent = numberFormat.format(settings.min_xp);
+      $("xp-max").textContent = numberFormat.format(settings.max_xp);
+
+      const seconds = Number(settings.cooldown_seconds);
+
+      $("xp-cooldown").textContent =
+        seconds >= 60 && seconds % 60 === 0
+          ? (seconds / 60) + " min"
+          : seconds + " sec";
+
+      const state = $("xp-state");
+      state.textContent = enabled ? "● DOUBLE XP ACTIVE" : "● NORMAL XP";
+      state.className = "xp-state " + (enabled ? "active" : "inactive");
+
+      $("xp-explainer-title").textContent = enabled
+        ? "Double XP is active"
+        : "Standard XP is active";
+
+      $("xp-explainer-text").textContent = enabled
+        ? "Eligible messages currently earn twice the normal XP amount across every ONYX server. Your XP cooldown remains unchanged."
+        : "Eligible messages earn XP within the displayed range across every ONYX server. Double XP is currently turned off.";
+
+      updated.className = "xp-updated";
+      updated.textContent = settings.updated_at
+        ? "Settings last updated: " +
+          new Date(settings.updated_at).toLocaleString() +
+          " · Refreshes automatically"
+        : "Live global settings · Refreshes automatically";
+
+    } catch (error) {
+      console.error("ONYX XP status error:", error);
+
+      $("xp-multiplier").textContent = "—";
+      $("xp-state").textContent = "STATUS UNAVAILABLE";
+      $("xp-state").className = "xp-state inactive";
+
+      updated.textContent =
+        "Live XP settings are temporarily unavailable. Please try again shortly.";
+      updated.className = "xp-updated xp-error";
+    }
+  }
+
+  loadXPStatus();
+  window.setInterval(loadXPStatus, 30000);
+})();
+</script>
+
+<script src="/assets/site.js"></script>
+
+</body>
+</html>
