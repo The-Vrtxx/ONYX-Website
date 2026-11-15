@@ -3,98 +3,113 @@
   "use strict";
 
   const API = "https://api.onyxdiscord.com";
-
   const $ = id => document.getElementById(id);
 
   let healthData = null;
-  let refreshTimer = null;
   let loading = false;
+  let refreshTimer = null;
 
-  async function request(path, options = {}) {
-    const response = await fetch(API + path, {
-      method: options.method || "GET",
-      credentials: "include",
-      headers: {
-        Accept: "application/json",
-        ...(options.body ? {"Content-Type": "application/json"} : {})
-      },
-      body: options.body
-    });
+  // Add Cog Monitor to the existing dashboard navigation.
+  const nav = $("dashboard-nav");
+  const content = document.querySelector(".dashboard-content");
 
-    let data = {};
+  if (!nav || !content || $("cog-monitor-panel")) return;
 
-    try {
-      data = await response.json();
-    } catch (_) {}
+  const navButton = document.createElement("button");
+  navButton.type = "button";
+  navButton.dataset.dashboardView = "cogs";
+  navButton.innerHTML =
+    '<span>⌘</span><span>Cog Monitor<small>Extension status</small></span>';
 
-    if (!response.ok) {
-      throw new Error(
-        data.error || "The request could not be completed."
-      );
+  const settingsButton = nav.querySelector(
+    '[data-dashboard-view="settings"]'
+  );
+
+  nav.insertBefore(navButton, settingsButton || null);
+
+  // Build the new dashboard section.
+  const panel = document.createElement("section");
+  panel.className = "dashboard-view";
+  panel.id = "cog-monitor-panel";
+  panel.dataset.dashboardPanel = "cogs";
+  panel.hidden = true;
+
+  panel.innerHTML = `
+    <div class="panel">
+      <div class="view-heading">
+        <div>
+          <div class="eyebrow">ONYX RUNTIME</div>
+          <h2>Cog Monitor</h2>
+          <p>Live extension status reported by the running ONYX bot.</p>
+        </div>
+        <button class="button primary" id="cog-refresh" type="button">
+          Refresh
+        </button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span>Bot status</span>
+          <strong id="cog-bot-status">—</strong>
+        </div>
+        <div class="stat-card">
+          <span>Loaded cogs</span>
+          <strong id="cog-loaded-count">—</strong>
+        </div>
+        <div class="stat-card">
+          <span>Reported extensions</span>
+          <strong id="cog-total-count">—</strong>
+        </div>
+      </div>
+
+      <div class="asset-toolbar">
+        <input
+          id="cog-search"
+          type="search"
+          placeholder="Search extensions..."
+          aria-label="Search extensions"
+          style="background:#071012;border:1px solid var(--line);color:#fff;padding:12px;flex:1;min-width:180px;font:inherit"
+        >
+        <select id="cog-filter" aria-label="Filter extensions">
+          <option value="all">All reported cogs</option>
+          <option value="loaded">Loaded only</option>
+        </select>
+      </div>
+
+      <div class="message" id="cog-heartbeat">
+        Waiting for runtime information…
+      </div>
+
+      <div class="asset-grid" id="cog-list">
+        <div class="asset-empty">Loading extensions…</div>
+      </div>
+
+      <div class="status-line" id="cog-last-refresh">
+        Not refreshed yet.
+      </div>
+      <div class="message error" id="cog-error" role="status"></div>
+    </div>
+  `;
+
+  content.append(panel);
+
+  function statusColor(status) {
+    const value = String(status || "unknown").toLowerCase();
+
+    if (value === "online" || value === "loaded" || value === "ok") {
+      return "#55d6a2";
     }
 
-    return data;
-  }
-
-  function avatarUrl(user) {
-    if (!user.avatar) {
-      return "../../assets/onyx-mark.png";
+    if (value === "offline" || value === "unloaded" || value === "error") {
+      return "#ff8585";
     }
 
-    return "https://cdn.discordapp.com/avatars/" +
-      encodeURIComponent(user.id) + "/" +
-      encodeURIComponent(user.avatar) +
-      ".png?size=96";
+    return "#e6bd70";
   }
 
   function setText(id, value) {
     const node = $(id);
     if (node) node.textContent = value;
-  }
-
-  function makePill(status) {
-    const normalized = String(status || "unknown").toLowerCase();
-
-    const pill = document.createElement("span");
-    pill.className = "status-pill";
-
-    if (normalized === "loaded" || normalized === "online") {
-      pill.classList.add("status-loaded");
-      pill.textContent = normalized.toUpperCase();
-    } else if (normalized === "unloaded" || normalized === "offline") {
-      pill.classList.add("status-unloaded");
-      pill.textContent = normalized.toUpperCase();
-    } else {
-      pill.classList.add("status-unknown");
-      pill.textContent = "UNKNOWN";
-    }
-
-    return pill;
-  }
-
-  function formatHeartbeat(data) {
-    if (!data.last_heartbeat) {
-      return "No bot heartbeat has been recorded.";
-    }
-
-    const date = new Date(data.last_heartbeat);
-
-    if (Number.isNaN(date.getTime())) {
-      return "Heartbeat timestamp unavailable.";
-    }
-
-    let result = "Last heartbeat: " + date.toLocaleString();
-
-    if (
-      data.heartbeat_age_seconds !== null &&
-      data.heartbeat_age_seconds !== undefined
-    ) {
-      result += " · " +
-        Number(data.heartbeat_age_seconds).toLocaleString() +
-        " seconds ago";
-    }
-
-    return result;
   }
 
   function renderCogs() {
@@ -103,96 +118,77 @@
 
     list.replaceChildren();
 
-    if (!healthData) {
-      list.append(emptyState("Runtime information is unavailable."));
-      return;
-    }
+    const cogs = Array.isArray(healthData?.loaded_cogs)
+      ? healthData.loaded_cogs
+      : [];
 
     const search = $("cog-search").value.trim().toLowerCase();
     const filter = $("cog-filter").value;
 
-    const cogs = Array.isArray(healthData.loaded_cogs)
-      ? healthData.loaded_cogs
-      : [];
-
-    const filtered = cogs
-      .filter(cog => {
-        const name = String(cog);
-        return !search || name.toLowerCase().includes(search);
-      })
-      .filter(() => filter === "all" || filter === "loaded");
+    const filtered = cogs.filter(name => {
+      const matchesSearch = String(name).toLowerCase().includes(search);
+      const matchesFilter = filter === "all" || filter === "loaded";
+      return matchesSearch && matchesFilter;
+    });
 
     if (!filtered.length) {
-      let message = "No extensions match your search.";
-
-      if (!cogs.length) {
-        message = "The bot has not reported any loaded extensions.";
-      }
-
-      list.append(emptyState(message));
-      setText("cog-message", "0 extensions displayed.");
+      const empty = document.createElement("div");
+      empty.className = "asset-empty";
+      empty.textContent = cogs.length
+        ? "No extensions match your search."
+        : "No loaded extensions have been reported.";
+      list.append(empty);
       return;
     }
 
-    filtered.forEach(cog => {
+    filtered.forEach(name => {
       const card = document.createElement("article");
-      card.className = "cog-card";
+      card.className = "asset-card";
 
       const top = document.createElement("div");
-      top.className = "cog-card-top";
-
-      const info = document.createElement("div");
+      top.className = "asset-card-top";
 
       const title = document.createElement("h3");
-      title.textContent = String(cog);
+      title.textContent = String(name);
 
-      const meta = document.createElement("div");
-      meta.className = "cog-meta";
-      meta.textContent = "ONYX extension";
+      const badge = document.createElement("span");
+      badge.textContent = "LOADED";
+      badge.style.cssText =
+        "color:#55d6a2;font-size:11px;font-weight:700;letter-spacing:.08em";
 
-      info.append(title, meta);
-
-      top.append(
-        info,
-        makePill("loaded")
-      );
+      top.append(title, badge);
 
       const detail = document.createElement("div");
-      detail.className = "cog-meta";
-      detail.style.marginTop = "13px";
-      detail.textContent = "Reported by the running ONYX bot.";
+      detail.className = "asset-meta";
+      detail.textContent = "Reported by the active ONYX runtime.";
 
       card.append(top, detail);
       list.append(card);
     });
-
-    setText(
-      "cog-message",
-      filtered.length + " of " + cogs.length +
-      " reported extensions displayed."
-    );
-  }
-
-  function emptyState(message) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = message;
-    return empty;
   }
 
   async function loadCogs() {
     if (loading) return;
 
     loading = true;
-
-    const refresh = $("refresh-cogs");
-    const error = $("monitor-error");
-
-    if (refresh) refresh.disabled = true;
-    if (error) error.textContent = "";
+    $("cog-refresh").disabled = true;
+    setText("cog-error", "");
 
     try {
-      const data = await request("/api/owner/system-health");
+      const response = await fetch(API + "/api/owner/system-health", {
+        method: "GET",
+        credentials: "include",
+        headers: {Accept: "application/json"}
+      });
+
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (_) {}
+
+      if (!response.ok) {
+        throw new Error(data.error || "Could not retrieve runtime health.");
+      }
 
       healthData = data;
 
@@ -200,131 +196,72 @@
         ? data.loaded_cogs
         : [];
 
+      const botStatus = String(data.bot_status || "unknown").toUpperCase();
+
+      setText("cog-bot-status", botStatus);
+      $("cog-bot-status").style.color = statusColor(data.bot_status);
+
       setText(
-        "loaded-count",
+        "cog-loaded-count",
         Number(data.loaded_cog_count ?? cogs.length).toLocaleString()
       );
 
-      setText(
-        "total-count",
-        cogs.length.toLocaleString()
-      );
+      setText("cog-total-count", cogs.length.toLocaleString());
 
-      const statusNode = $("bot-status");
+      let heartbeat = "No heartbeat has been recorded.";
 
-      if (statusNode) {
-        statusNode.replaceChildren(
-          makePill(data.bot_status)
-        );
+      if (data.last_heartbeat) {
+        heartbeat = "Last heartbeat: " +
+          new Date(data.last_heartbeat).toLocaleString();
+
+        if (data.heartbeat_age_seconds != null) {
+          heartbeat += " · " +
+            Number(data.heartbeat_age_seconds).toLocaleString() +
+            " seconds ago";
+        }
       }
 
-      setText(
-        "heartbeat-status",
-        formatHeartbeat(data)
-      );
-
+      setText("cog-heartbeat", heartbeat);
       renderCogs();
 
       setText(
-        "last-refresh",
+        "cog-last-refresh",
         "Last refreshed: " + new Date().toLocaleTimeString()
       );
 
-    } catch (err) {
-      if (error) {
-        error.textContent =
-          "Unable to retrieve ONYX runtime data: " + err.message;
-      }
+    } catch (error) {
+      setText("cog-error", "Unable to load Cog Monitor: " + error.message);
 
       setText(
-        "last-refresh",
+        "cog-last-refresh",
         "Refresh failed: " + new Date().toLocaleTimeString()
       );
 
     } finally {
       loading = false;
-
-      if (refresh) refresh.disabled = false;
+      $("cog-refresh").disabled = false;
     }
   }
 
-  async function logout() {
-    try {
-      await request("/auth/logout", {
-        method: "POST",
-        body: "{}"
-      });
-    } catch (_) {}
-
-    window.location.href = "/owner/";
-  }
-
-  function startAutoRefresh() {
-    if (refreshTimer) {
-      clearInterval(refreshTimer);
-    }
+  function startMonitor() {
+    if (refreshTimer) clearInterval(refreshTimer);
 
     loadCogs();
 
     refreshTimer = setInterval(() => {
-      if (!document.hidden) {
+      if (
+        !document.hidden &&
+        !$("cog-monitor-panel").hidden
+      ) {
         loadCogs();
       }
     }, 30000);
   }
 
-  async function initialize() {
-    try {
-      const user = await request("/api/me");
+  // Wire up the new section.
+  $("cog-refresh").addEventListener("click", loadCogs);
+  $("cog-search").addEventListener("input", renderCogs);
+  $("cog-filter").addEventListener("change", renderCogs);
 
-      $("account").hidden = false;
-      $("username").textContent = user.username || "Discord user";
-      $("avatar").src = avatarUrl(user);
-
-      const access = await request("/api/developer/access");
-
-      $("login-panel").hidden = true;
-
-      if (!access.authorized) {
-        $("denied-panel").hidden = false;
-        return;
-      }
-
-      $("monitor").hidden = false;
-
-      $("role-label").textContent =
-        access.role === "owner"
-          ? "ONYX Owner"
-          : "ONYX Developer";
-
-      $("refresh-cogs").addEventListener("click", loadCogs);
-      $("cog-search").addEventListener("input", renderCogs);
-      $("cog-filter").addEventListener("change", renderCogs);
-
-      $("clear-search").addEventListener("click", () => {
-        $("cog-search").value = "";
-        $("cog-filter").value = "all";
-        renderCogs();
-      });
-
-      startAutoRefresh();
-
-    } catch (err) {
-      if (err.message === "Sign in with Discord first.") {
-        return;
-      }
-
-      $("login-panel").hidden = false;
-
-      const message = document.createElement("p");
-      message.className = "message error";
-      message.textContent = err.message;
-      $("login-panel").append(message);
-    }
-  }
-
-  $("logout").addEventListener("click", logout);
-  $("denied-logout").addEventListener("click", logout);
-
-  initialize();
+  navButton.addEventListener("click", startMonitor);
 })();
