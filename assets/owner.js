@@ -801,11 +801,7 @@ async function saveAsset(event) {
     price_tokens: Number($("asset-price").value),
     rarity: $("asset-rarity").value,
 
-    // IMPORTANT FIX:
-    // When editing an existing asset, omit image_url unless
-    // the owner entered a new external URL. This preserves the
-    // existing database image URL without sending an invalid
-    // relative URL back to the API.
+    // Preserve the existing stored image when no replacement is entered.
     image_url:
       $("asset-image-url").value.trim() ||
       (editingAssetId ? undefined : null),
@@ -950,12 +946,40 @@ async function startPortal() {
 
     $("portal").hidden = false;
 
-    $("role-label").textContent =
-      access.role === "owner" ? "ONYX Owner" : "ONYX Developer";
+    const isOwner = access.role === "owner";
+
+    $("role-label").textContent = isOwner
+      ? "ONYX Owner"
+      : "ONYX Developer";
+
+    // Owner-only sections are hidden completely from appointed developers.
+    const ownerOnlyViews = new Set([
+      "leveling",
+      "team",
+      "assets",
+      "settings"
+    ]);
+
+    document.querySelectorAll("[data-dashboard-view]").forEach(button => {
+      const view = button.dataset.dashboardView;
+      button.hidden = !isOwner && ownerOnlyViews.has(view);
+    });
+
+    // Only the overview is visible when the dashboard first opens.
+    document.querySelectorAll("[data-dashboard-panel]").forEach(panel => {
+      panel.hidden = panel.dataset.dashboardPanel !== "overview";
+    });
+
+    document.querySelectorAll("[data-dashboard-view]").forEach(button => {
+      button.setAttribute(
+        "aria-current",
+        button.dataset.dashboardView === "overview" ? "page" : "false"
+      );
+    });
 
     await loadOverview();
 
-    if (access.role === "owner") {
+    if (isOwner) {
       $("team-panel").hidden = false;
       $("asset-library-panel").hidden = false;
 
@@ -1041,6 +1065,7 @@ $("asset-image-file").addEventListener(
 );
 
 // Live preview updates
+
 [
   "asset-category",
   "asset-item-id",
