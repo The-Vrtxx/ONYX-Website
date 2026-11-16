@@ -49,9 +49,96 @@ function showMessage(text, error = false) {
   if (!message) return;
 
   message.textContent = text;
-  message.style.color = error
-    ? "#ff9999"
-    : "var(--teal)";
+  message.style.color = error ? "#ff9999" : "var(--teal)";
+}
+
+// CURRENCY DISPLAY
+
+function formatCurrency(amount) {
+  return Number(amount || 0).toLocaleString();
+}
+
+function getCurrencyMode(item) {
+  const mode = String(item.currency_mode || "tokens").toLowerCase();
+
+  return ["tokens", "credits", "both", "free"].includes(mode)
+    ? mode
+    : "tokens";
+}
+
+function getItemPriceLabel(item) {
+  const mode = getCurrencyMode(item);
+  const tokens = formatCurrency(item.price_tokens ?? item.cost ?? 0);
+  const credits = formatCurrency(item.price_credits || 0);
+
+  switch (mode) {
+    case "credits":
+      return `${credits} ONYX CREDITS`;
+
+    case "both":
+      return `${tokens} PRESTIGE TOKENS + ${credits} ONYX CREDITS`;
+
+    case "free":
+      return "FREE";
+
+    case "tokens":
+    default:
+      return `${tokens} PRESTIGE TOKENS`;
+  }
+}
+
+function getPurchaseConfirmation(item, action) {
+  const mode = getCurrencyMode(item);
+  const tokens = formatCurrency(item.price_tokens ?? item.cost ?? 0);
+  const credits = formatCurrency(item.price_credits || 0);
+
+  if (mode === "free") {
+    return `${action} ${item.name} for free?`;
+  }
+
+  if (mode === "credits") {
+    return `${action} ${item.name} for ${credits} ONYX Credits?`;
+  }
+
+  if (mode === "both") {
+    return `${action} ${item.name} for ${tokens} Prestige Tokens AND ${credits} ONYX Credits?`;
+  }
+
+  return `${action} ${item.name} for ${tokens} Prestige Tokens?`;
+}
+
+function updateCurrencyBalances(data) {
+  const tokenElement = $("tokens");
+
+  if (tokenElement) {
+    tokenElement.textContent = formatCurrency(data.tokens);
+  }
+
+  let creditElement = $("credits");
+
+  if (!creditElement) {
+    const balance = $("shop-content")?.querySelector(".balance");
+
+    if (balance) {
+      const creditWrap = document.createElement("div");
+      creditWrap.className = "currency-balance";
+      creditWrap.id = "credits-balance";
+
+      const label = document.createElement("span");
+      label.textContent = "ONYX CREDITS";
+
+      creditElement = document.createElement("strong");
+      creditElement.id = "credits";
+      creditElement.textContent = "0";
+
+      creditWrap.append(label, creditElement);
+      balance.append(creditWrap);
+    }
+  }
+
+  if (creditElement) {
+    creditElement.textContent = formatCurrency(data.credits);
+  }
 }
 
 // PROFILE CARD PREVIEW
@@ -117,9 +204,11 @@ function createProfilePreview() {
 
   section.append(heading, imageWrap, status);
 
-  const balance = $("shop-content").querySelector(".balance");
+  const balance = $("shop-content")?.querySelector(".balance");
 
-  balance.insertAdjacentElement("afterend", section);
+  if (balance) {
+    balance.insertAdjacentElement("afterend", section);
+  }
 }
 
 async function refreshProfilePreview() {
@@ -127,6 +216,8 @@ async function refreshProfilePreview() {
 
   const status = $("profile-preview-status");
   const image = $("profile-card-image");
+
+  if (!status || !image) return;
 
   try {
     status.textContent = "Loading your latest ONYX profile card...";
@@ -149,9 +240,7 @@ async function refreshProfilePreview() {
       try {
         const data = await response.json();
 
-        if (data.error) {
-          message = data.error;
-        }
+        if (data.error) message = data.error;
       } catch {}
 
       throw new Error(message);
@@ -160,9 +249,7 @@ async function refreshProfilePreview() {
     const blob = await response.blob();
 
     if (!blob.type.includes("image/png")) {
-      throw new Error(
-        "The profile card endpoint did not return a PNG image."
-      );
+      throw new Error("The profile card endpoint did not return a PNG image.");
     }
 
     const nextObjectUrl = URL.createObjectURL(blob);
@@ -183,8 +270,7 @@ async function refreshProfilePreview() {
         profileCardObjectUrl = null;
       }
 
-      status.textContent =
-        "The profile card image could not be displayed.";
+      status.textContent = "The profile card image could not be displayed.";
     };
 
     image.src = nextObjectUrl;
@@ -260,7 +346,6 @@ function createItemCard(item) {
 
   const category = document.createElement("div");
   category.className = "category";
-
   category.textContent =
     CATEGORY_NAMES[item.category] || item.category;
 
@@ -281,7 +366,6 @@ function createItemCard(item) {
   );
 
   previewBox.append(previewCanvas);
-
   renderShopPreview(previewCanvas, item);
 
   const description = document.createElement("p");
@@ -291,8 +375,8 @@ function createItemCard(item) {
   meta.className = "shop-meta";
 
   const cost = document.createElement("span");
-  cost.textContent =
-    Number(item.cost || 0).toLocaleString() + " TOKENS";
+  cost.className = "shop-price";
+  cost.textContent = getItemPriceLabel(item);
 
   const rarity = document.createElement("span");
   rarity.textContent = item.rarity || "Common";
@@ -319,10 +403,7 @@ function createItemCard(item) {
     }
 
   } else if (item.owned) {
-    button.textContent = item.equipped
-      ? "Equipped"
-      : "Equip";
-
+    button.textContent = item.equipped ? "Equipped" : "Equip";
     button.disabled = !!item.equipped;
 
     if (!item.equipped) {
@@ -373,16 +454,9 @@ function renderShop() {
   $("owned-count").textContent = owned.length;
 
   const filtered = catalog.filter(item => {
-    if (currentFilter === "all") {
-      return true;
-    }
+    if (currentFilter === "all") return true;
+    if (currentFilter === "owned") return item.owned;
 
-    if (currentFilter === "owned") {
-      return item.owned;
-    }
-
-    // The API groups borders into the Frames section.
-    // Keep the raw item category for purchase and equipment actions.
     const section = item.section || item.category;
 
     return section === currentFilter;
@@ -394,16 +468,11 @@ function renderShop() {
 
   if (!filtered.length) {
     const empty = document.createElement("div");
-
     empty.className = "empty";
 
-    if (currentFilter === "owned") {
-      empty.textContent =
-        "You haven't collected any shop items yet.";
-    } else {
-      empty.textContent =
-        "No items in this category yet.";
-    }
+    empty.textContent = currentFilter === "owned"
+      ? "You haven't collected any shop items yet."
+      : "No items in this category yet.";
 
     grid.append(empty);
     return;
@@ -423,8 +492,7 @@ async function refreshShop() {
     ? data.items
     : [];
 
-  $("tokens").textContent =
-    Number(data.tokens || 0).toLocaleString();
+  updateCurrencyBalances(data);
 
   renderShop();
   await refreshProfilePreview();
@@ -447,9 +515,7 @@ async function buyItem(category, item_id) {
     ? "Collect"
     : "Unlock";
 
-  if (!confirm(
-    `${action} ${item.name} with Prestige Tokens?`
-  )) {
+  if (!confirm(getPurchaseConfirmation(item, action))) {
     return;
   }
 
