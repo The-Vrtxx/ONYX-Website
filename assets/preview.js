@@ -387,7 +387,6 @@
       null;
 
     if (imageUrl) {
-      // Asset Library image URLs are relative to the API host.
       if (imageUrl.startsWith("/")) {
         return API + imageUrl;
       }
@@ -518,10 +517,7 @@
     drawAssetCaption();
 
     if (imageUrl) {
-      const image = new Image();
-      image.crossOrigin = "anonymous";
-
-      image.onload = () => {
+      const drawLoadedImage = image => {
         ctx.clearRect(20, 20, width - 40, 220);
 
         const maxWidth = 300;
@@ -546,10 +542,40 @@
         drawAssetCaption();
       };
 
+      // Try a CORS-enabled load first so the canvas remains exportable.
+      // If the API does not send CORS headers, retry without CORS.
+      const image = new Image();
+      let retriedWithoutCors = false;
+
+      image.onload = () => drawLoadedImage(image);
+
       image.onerror = () => {
-        console.warn("ONYX preview image could not be loaded:", imageUrl);
+        if (!retriedWithoutCors) {
+          retriedWithoutCors = true;
+
+          const fallbackImage = new Image();
+
+          fallbackImage.onload = () =>
+            drawLoadedImage(fallbackImage);
+
+          fallbackImage.onerror = () => {
+            console.warn(
+              "ONYX preview image could not be loaded:",
+              imageUrl
+            );
+          };
+
+          fallbackImage.src = imageUrl;
+          return;
+        }
+
+        console.warn(
+          "ONYX preview image could not be loaded:",
+          imageUrl
+        );
       };
 
+      image.crossOrigin = "anonymous";
       image.src = imageUrl;
     }
 
