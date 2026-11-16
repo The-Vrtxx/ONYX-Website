@@ -21,7 +21,16 @@
     maximum_streak_wins: 10
   };
 
+  const REWARD_LABELS = {
+    reward_daily: "Daily Reward",
+    reward_weekly: "Weekly Reward",
+    reward_work: "Work",
+    reward_beg: "Beg"
+  };
+
   let currentConfig = null;
+  let creditCursor = null;
+  let creditLoading = false;
 
   async function api(path, options = {}) {
     const response = await fetch(API + path, {
@@ -280,7 +289,481 @@
     }
   }
 
+  // --------------------------------------------------
+  // OWNER CREDIT EARNINGS LEDGER
+  // --------------------------------------------------
+
+  function addCreditStyles() {
+    if ($("owner-credit-styles")) return;
+
+    const style = document.createElement("style");
+    style.id = "owner-credit-styles";
+    style.textContent = `
+      .credit-stat-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+        gap:14px;
+        margin:20px 0;
+      }
+      .credit-stat {
+        padding:18px;
+        border:1px solid var(--border,rgba(255,255,255,.12));
+        border-radius:14px;
+        background:var(--card,rgba(255,255,255,.035));
+      }
+      .credit-stat span {
+        display:block;
+        font-size:12px;
+        opacity:.7;
+        margin-bottom:9px;
+      }
+      .credit-stat strong {
+        display:block;
+        font-size:25px;
+        overflow-wrap:anywhere;
+      }
+      .credit-toolbar {
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        align-items:center;
+        margin:18px 0;
+      }
+      .credit-toolbar input,
+      .credit-toolbar select {
+        min-width:150px;
+        flex:1;
+        padding:11px 12px;
+        border-radius:9px;
+        border:1px solid var(--border,rgba(255,255,255,.16));
+        background:var(--card,rgba(255,255,255,.04));
+        color:inherit;
+      }
+      .credit-toolbar button,
+      .credit-load-more {
+        padding:11px 16px;
+        border-radius:9px;
+        border:1px solid var(--border,rgba(255,255,255,.18));
+        cursor:pointer;
+        color:inherit;
+        background:var(--card,rgba(255,255,255,.08));
+      }
+      .credit-table-wrap {
+        width:100%;
+        overflow-x:auto;
+        border:1px solid var(--border,rgba(255,255,255,.12));
+        border-radius:12px;
+      }
+      .credit-table {
+        width:100%;
+        min-width:760px;
+        border-collapse:collapse;
+        text-align:left;
+      }
+      .credit-table th,
+      .credit-table td {
+        padding:13px 14px;
+        border-bottom:1px solid var(--border,rgba(255,255,255,.09));
+        vertical-align:top;
+      }
+      .credit-table th {
+        font-size:11px;
+        text-transform:uppercase;
+        letter-spacing:.06em;
+        opacity:.7;
+      }
+      .credit-table td {
+        font-size:13px;
+      }
+      .credit-user-name {
+        display:block;
+        font-weight:700;
+      }
+      .credit-user-meta {
+        display:block;
+        opacity:.65;
+        font-size:11px;
+        margin-top:4px;
+      }
+      .credit-amount {
+        font-weight:800;
+        white-space:nowrap;
+      }
+      .credit-source {
+        display:inline-block;
+        padding:5px 8px;
+        border-radius:7px;
+        background:rgba(45,190,150,.12);
+        font-size:11px;
+      }
+      .credit-message {
+        padding:14px;
+        opacity:.75;
+      }
+      .credit-actions {
+        display:flex;
+        gap:10px;
+        align-items:center;
+        margin-top:16px;
+      }
+      .credit-source-summary {
+        display:flex;
+        flex-wrap:wrap;
+        gap:9px;
+        margin:14px 0;
+      }
+      .credit-source-summary span {
+        padding:8px 10px;
+        border-radius:8px;
+        background:var(--card,rgba(255,255,255,.05));
+        font-size:12px;
+      }
+      @media(max-width:600px) {
+        .credit-stat strong {font-size:21px}
+        .credit-toolbar input,
+        .credit-toolbar select {min-width:100%}
+      }
+    `;
+    document.head.append(style);
+  }
+
+  function createCreditPanel() {
+    if ($("owner-credit-panel")) return;
+
+    const nav = $("dashboard-nav");
+    const content = document.querySelector(".dashboard-content");
+
+    if (!nav || !content) {
+      console.warn("ONYX Credit Earnings: dashboard navigation was not found.");
+      return;
+    }
+
+    const navButton = document.createElement("button");
+    navButton.type = "button";
+    navButton.dataset.dashboardView = "credits";
+    navButton.hidden = true;
+    navButton.textContent = "Credit Earnings";
+    nav.append(navButton);
+
+    const panel = document.createElement("section");
+    panel.className = "dashboard-view";
+    panel.dataset.dashboardPanel = "credits";
+    panel.id = "owner-credit-panel";
+    panel.hidden = true;
+
+    panel.innerHTML = `
+      <div class="view-heading">
+        <div>
+          <h2>Credit Earnings</h2>
+          <p>Track every credit earned through ONYX bot rewards.</p>
+        </div>
+        <button type="button" id="credit-refresh">Refresh Ledger</button>
+      </div>
+
+      <div class="credit-stat-grid">
+        <div class="credit-stat">
+          <span>Total Bot Credits Earned</span>
+          <strong id="credit-total">—</strong>
+        </div>
+        <div class="credit-stat">
+          <span>Reward Transactions</span>
+          <strong id="credit-transactions-count">—</strong>
+        </div>
+        <div class="credit-stat">
+          <span>Users Rewarded</span>
+          <strong id="credit-users-count">—</strong>
+        </div>
+      </div>
+
+      <h3>Reward Breakdown</h3>
+      <div class="credit-source-summary" id="credit-source-summary">
+        <span>Loading reward totals…</span>
+      </div>
+
+      <div class="view-heading">
+        <div>
+          <h3>Reward History</h3>
+          <p>Daily, weekly, work, and beg rewards recorded by the bot.</p>
+        </div>
+      </div>
+
+      <div class="credit-toolbar">
+        <input
+          type="search"
+          id="credit-search"
+          placeholder="Search display name or exact ID"
+          aria-label="Search display name or user ID"
+        >
+        <input
+          type="text"
+          id="credit-user-id"
+          inputmode="numeric"
+          placeholder="Filter by user ID"
+          aria-label="Filter by user ID"
+        >
+        <select id="credit-source-filter" aria-label="Filter reward source">
+          <option value="">All reward types</option>
+          <option value="reward_daily">Daily</option>
+          <option value="reward_weekly">Weekly</option>
+          <option value="reward_work">Work</option>
+          <option value="reward_beg">Beg</option>
+        </select>
+        <button type="button" id="credit-apply-filters">Apply Filters</button>
+        <button type="button" id="credit-clear-filters">Clear</button>
+      </div>
+
+      <div id="credit-ledger-message" class="credit-message">
+        Loading credit history…
+      </div>
+
+      <div class="credit-table-wrap">
+        <table class="credit-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Credits Earned</th>
+              <th>Reward</th>
+              <th>Balance After</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="credit-ledger-rows"></tbody>
+        </table>
+      </div>
+
+      <div class="credit-actions">
+        <button type="button" class="credit-load-more" id="credit-load-more" hidden>
+          Load More Transactions
+        </button>
+        <span id="credit-ledger-count" class="muted"></span>
+      </div>
+
+      <p class="muted" style="margin-top:18px;font-size:12px">
+        Read-only ledger. Transfers, arcade payouts, and shop purchases are excluded.
+      </p>
+    `;
+
+    content.append(panel);
+
+    addCreditStyles();
+
+    $("credit-refresh").addEventListener("click", refreshCreditLedger);
+
+    $("credit-apply-filters").addEventListener("click", () => {
+      loadCreditTransactions(false);
+    });
+
+    $("credit-clear-filters").addEventListener("click", () => {
+      $("credit-search").value = "";
+      $("credit-user-id").value = "";
+      $("credit-source-filter").value = "";
+      loadCreditTransactions(false);
+    });
+
+    $("credit-load-more").addEventListener("click", () => {
+      loadCreditTransactions(true);
+    });
+
+    $("credit-search").addEventListener("keydown", event => {
+      if (event.key === "Enter") loadCreditTransactions(false);
+    });
+
+    $("credit-user-id").addEventListener("keydown", event => {
+      if (event.key === "Enter") loadCreditTransactions(false);
+    });
+  }
+
+  function renderCreditSummary(data) {
+    $("credit-total").textContent =
+      numberFormat.format(data.total_earned || 0);
+
+    $("credit-transactions-count").textContent =
+      numberFormat.format(data.transaction_count || 0);
+
+    $("credit-users-count").textContent =
+      numberFormat.format(data.users_rewarded || 0);
+
+    const container = $("credit-source-summary");
+    container.replaceChildren();
+
+    const sources = data.sources || [];
+
+    if (!sources.length) {
+      const empty = document.createElement("span");
+      empty.textContent = "No reward earnings recorded yet.";
+      container.append(empty);
+      return;
+    }
+
+    sources.forEach(item => {
+      const chip = document.createElement("span");
+      const label = REWARD_LABELS[item.source] || item.source;
+
+      chip.textContent =
+        `${label}: ${numberFormat.format(item.total_earned || 0)} credits`;
+
+      container.append(chip);
+    });
+  }
+
+  function appendCreditRow(item) {
+    const row = document.createElement("tr");
+
+    const userCell = document.createElement("td");
+    const name = document.createElement("span");
+    name.className = "credit-user-name";
+    name.textContent = item.display_name || "Name not recorded yet";
+
+    const userMeta = document.createElement("span");
+    userMeta.className = "credit-user-meta";
+    userMeta.textContent =
+      `${item.username ? "@" + item.username + " · " : ""}ID: ${item.user_id}`;
+
+    userCell.append(name, userMeta);
+
+    const amountCell = document.createElement("td");
+    amountCell.className = "credit-amount";
+    amountCell.textContent =
+      "+" + numberFormat.format(item.amount || 0);
+
+    const sourceCell = document.createElement("td");
+    const source = document.createElement("span");
+    source.className = "credit-source";
+    source.textContent = REWARD_LABELS[item.source] || item.source;
+    sourceCell.append(source);
+
+    const balanceCell = document.createElement("td");
+    balanceCell.textContent =
+      numberFormat.format(item.balance_after || 0);
+
+    const dateCell = document.createElement("td");
+    dateCell.textContent = item.created_at
+      ? new Date(item.created_at).toLocaleString()
+      : "Date unavailable";
+
+    row.append(
+      userCell,
+      amountCell,
+      sourceCell,
+      balanceCell,
+      dateCell
+    );
+
+    $("credit-ledger-rows").append(row);
+  }
+
+  function creditFilterUrl(before = null) {
+    const params = new URLSearchParams();
+    params.set("limit", "50");
+
+    const search = $("credit-search").value.trim();
+    const userId = $("credit-user-id").value.trim();
+    const source = $("credit-source-filter").value;
+
+    if (search) params.set("search", search);
+    if (userId) params.set("user_id", userId);
+    if (source) params.set("source", source);
+    if (before) params.set("before", String(before));
+
+    return "/api/owner/credits/transactions?" + params.toString();
+  }
+
+  async function loadCreditTransactions(loadMore = false) {
+    if (creditLoading) return;
+
+    const message = $("credit-ledger-message");
+    const moreButton = $("credit-load-more");
+
+    if (!loadMore) {
+      creditCursor = null;
+      $("credit-ledger-rows").replaceChildren();
+      $("credit-ledger-count").textContent = "";
+      message.textContent = "Loading credit history…";
+    } else if (!creditCursor) {
+      return;
+    }
+
+    creditLoading = true;
+    moreButton.disabled = true;
+
+    try {
+      const data = await api(creditFilterUrl(loadMore ? creditCursor : null));
+      const transactions = data.transactions || [];
+
+      transactions.forEach(appendCreditRow);
+
+      if (!loadMore && !transactions.length) {
+        message.textContent = "No matching reward transactions were found.";
+      } else {
+        message.textContent = "";
+      }
+
+      creditCursor = data.next_before || null;
+      moreButton.hidden = !data.has_more;
+      moreButton.disabled = false;
+
+      const displayed = $("credit-ledger-rows").children.length;
+      $("credit-ledger-count").textContent =
+        `${numberFormat.format(displayed)} transactions displayed`;
+    } catch (error) {
+      message.textContent = "Could not load credit history: " + error.message;
+      moreButton.hidden = true;
+    } finally {
+      creditLoading = false;
+      moreButton.disabled = false;
+    }
+  }
+
+  async function refreshCreditLedger() {
+    const button = $("credit-refresh");
+    button.disabled = true;
+
+    try {
+      const summary = await api("/api/owner/credits/summary");
+      renderCreditSummary(summary);
+      await loadCreditTransactions(false);
+    } catch (error) {
+      $("credit-ledger-message").textContent =
+        "Could not refresh the credit ledger: " + error.message;
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  async function enableCreditLedgerForOwner() {
+    try {
+      const access = await api("/api/developer/access");
+
+      if (access.role !== "owner") {
+        return;
+      }
+
+      const navButton = document.querySelector(
+        '[data-dashboard-view="credits"]'
+      );
+
+      if (navButton) {
+        navButton.hidden = false;
+      }
+
+      await refreshCreditLedger();
+    } catch (error) {
+      console.warn("ONYX Credit Earnings access check failed:", error.message);
+    }
+  }
+
+  function initCreditLedger() {
+    createCreditPanel();
+    enableCreditLedgerForOwner();
+  }
+
+  // --------------------------------------------------
+  // INITIALIZATION
+  // --------------------------------------------------
+
   function init() {
+    initCreditLedger();
+
     if (!$("arcade-save")) return;
 
     $("arcade-save").addEventListener("click", saveConfig);
