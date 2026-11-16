@@ -7,17 +7,20 @@
   <meta name="theme-color" content="#05090b">
   <title>ONYX Control Center</title>
   <link rel="stylesheet" href="../assets/styles.css">
+
   <style>
     .control-wrap{width:min(1120px,calc(100% - 36px));margin:auto;padding:64px 0 100px}
     .control-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
     .control-hero h1{font-size:clamp(42px,7vw,76px);margin:12px 0}
     .control-lead{max-width:650px;color:var(--muted)}
     .panel{margin-top:28px;padding:26px;border:1px solid var(--line);background:linear-gradient(145deg,#0d191c,#080e11)}
-    .panel h2{margin:0 0 10px}.muted{color:var(--muted)}
+    .panel h2{margin:0 0 10px}
+    .muted{color:var(--muted)}
     .login-panel,.denied-panel{text-align:center;padding:48px 24px}
     .login-panel p,.denied-panel p{color:var(--muted);max-width:580px;margin:12px auto 24px}
     .account{display:flex;align-items:center;gap:12px;padding:12px 15px;border:1px solid var(--line);background:var(--panel)}
-    .account img{width:42px;height:42px;border-radius:50%}.account small{display:block;color:var(--muted)}
+    .account img{width:42px;height:42px;border-radius:50%}
+    .account small{display:block;color:var(--muted)}
     .stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:24px}
     .stat-card{padding:22px;border:1px solid var(--line);background:#0b1518}
     .stat-card span{display:block;color:var(--muted);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
@@ -28,8 +31,10 @@
     .team-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px;border:1px solid var(--line);background:#091316}
     .team-row small{display:block;color:var(--muted);margin-top:4px}
     .remove-button{border:1px solid #753f49;background:#261318;color:#ffb8c1;padding:10px 14px;cursor:pointer}
-    .message{margin-top:14px;color:var(--muted);font-size:13px}.message.error{color:#ff9999}
+    .message{margin-top:14px;color:var(--muted);font-size:13px}
+    .message.error{color:#ff9999}
     .status-line{margin-top:14px;color:var(--muted);font-size:12px}
+
     .asset-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:18px 0}
     .asset-toolbar select,.asset-form input,.asset-form select,.asset-form textarea{background:#071012;border:1px solid var(--line);color:#fff;padding:12px;min-width:0;width:100%;font:inherit}
     .asset-toolbar select{width:auto;min-width:150px}
@@ -64,7 +69,7 @@
     .currency-fields label{min-width:0}
     .currency-fields input{width:100%}
 
-    /* Layered dashboard navigation */
+    /* Dashboard navigation */
     .dashboard-layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:20px;margin-top:28px;align-items:start}
     .dashboard-nav{position:sticky;top:18px;padding:12px;border:1px solid var(--line);background:#091316;display:grid;gap:7px}
     .dashboard-nav button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:13px 14px;border:1px solid transparent;background:transparent;color:var(--muted);font:inherit;cursor:pointer}
@@ -80,26 +85,57 @@
     .coming-soon{padding:28px;border:1px dashed var(--line);background:#091316;color:var(--muted)}
     [hidden]{display:none!important}
 
-    @media(max-width:650px){
+    /* Economy and Arcade */
+    .arcade-section{margin-top:20px;padding:20px;border:1px solid var(--line);background:#091316}
+    .arcade-section h3{margin:0 0 8px}
+    .arcade-section>p{color:var(--muted);font-size:13px;line-height:1.6}
+    .arcade-status{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px;border:1px solid var(--line);background:#071012;margin-top:18px}
+    .arcade-status strong{font-size:18px}
+    .arcade-game-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+    .arcade-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid var(--line);background:#071012;color:#e9ffff}
+    .arcade-toggle span{font-size:14px}
+    .arcade-toggle input{width:19px;height:19px;accent-color:var(--teal)}
+    .arcade-number-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
+    .arcade-field{display:grid;gap:7px;color:var(--muted);font-size:12px}
+    .arcade-field input{width:100%;min-width:0;padding:12px;background:#071012;border:1px solid var(--line);color:#fff;font:inherit}
+    .arcade-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    .arcade-actions button{cursor:pointer}
+    .arcade-activity-list{display:grid;gap:10px;margin-top:14px}
+    .arcade-activity-row{padding:14px;border:1px solid var(--line);background:#071012;overflow-wrap:anywhere}
+    .arcade-activity-row strong{display:block;margin-bottom:5px}
+    .arcade-activity-row small{display:block;color:var(--muted);line-height:1.6}
+    .arcade-log-details{margin-top:8px;color:var(--muted);font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+    .arcade-empty{padding:20px;border:1px dashed var(--line);color:var(--muted);text-align:center}
+    .arcade-warning{padding:14px;border:1px solid #754b35;background:#21170f;color:#ffd2a8;font-size:12px;line-height:1.6;margin-top:14px}
+
+    @media(max-width:800px){
       .dashboard-layout{grid-template-columns:1fr}
       .dashboard-nav{position:static;grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+
+    @media(max-width:650px){
       .dashboard-nav button{padding:11px 9px;font-size:12px}
       .stat-grid{grid-template-columns:1fr}
       .panel{padding:20px}
-      .asset-grid,.asset-form,.currency-fields{grid-template-columns:1fr}
+      .asset-grid,.asset-form,.currency-fields,.arcade-game-grid,.arcade-number-grid{grid-template-columns:1fr}
       .asset-form .wide,.asset-form-buttons,.asset-upload-box,.currency-fields{grid-column:auto}
       .asset-toolbar select{width:100%}
+      .arcade-section{padding:15px}
     }
   </style>
 </head>
+
 <body>
 <header class="topbar">
   <a class="brand" href="/"><img class="brand-mark" src="/assets/onyx-mark.png" alt="">ONYX</a>
   <button class="menu-toggle" type="button" aria-label="Toggle navigation">☰</button>
   <nav>
-    <a href="/">HOME</a><a href="/features">FEATURES</a>
-    <a href="/docs">DOCUMENTATION</a><a href="/commands/">COMMANDS</a>
-    <a href="/shop/">PRESTIGE SHOP</a><a class="active" href="/owner/">CONTROL CENTER</a>
+    <a href="/">HOME</a>
+    <a href="/features">FEATURES</a>
+    <a href="/docs">DOCUMENTATION</a>
+    <a href="/commands/">COMMANDS</a>
+    <a href="/shop/">PRESTIGE SHOP</a>
+    <a class="active" href="/owner/">CONTROL CENTER</a>
     <a href="/support">SUPPORT</a>
   </nav>
 </header>
@@ -111,9 +147,13 @@
       <h1>Control <em>Center.</em></h1>
       <p class="control-lead">A private workspace for the ONYX owner and appointed developers. Access is verified against the same developer records used by the bot.</p>
     </div>
+
     <div class="account" id="account" hidden>
       <img id="avatar" src="../assets/onyx-mark.png" alt="">
-      <div><strong id="username"></strong><small id="role-label">ONYX team</small></div>
+      <div>
+        <strong id="username"></strong>
+        <small id="role-label">ONYX team</small>
+      </div>
       <button class="button" id="logout" type="button">Sign out</button>
     </div>
   </section>
@@ -133,24 +173,35 @@
   <section id="portal" hidden>
     <div class="dashboard-layout">
       <nav class="dashboard-nav" id="dashboard-nav" aria-label="Control Center sections">
+
         <button type="button" data-dashboard-view="overview" aria-current="page">
           <span>◈</span><span>Overview<small>System status</small></span>
         </button>
+
         <button type="button" data-dashboard-view="leveling">
           <span>↗</span><span>Leveling & Progression<small>Global XP controls</small></span>
         </button>
+
         <button type="button" data-dashboard-view="team">
           <span>♙</span><span>Team Management<small>Developer access</small></span>
         </button>
+
         <button type="button" data-dashboard-view="assets">
           <span>▧</span><span>Asset Library<small>Cosmetics & artwork</small></span>
         </button>
+
         <button type="button" data-dashboard-view="settings">
           <span>⚙</span><span>System Settings<small>Global configuration</small></span>
+        </button>
+
+        <button type="button" data-dashboard-view="arcade">
+          <span>♠</span><span>Economy & Arcade<small>Game controls and activity</small></span>
         </button>
       </nav>
 
       <div class="dashboard-content">
+
+        <!-- OVERVIEW -->
         <section class="dashboard-view" data-dashboard-panel="overview">
           <div class="panel">
             <div class="view-heading">
@@ -160,15 +211,18 @@
                 <p>Live values from the ONYX shared database.</p>
               </div>
             </div>
+
             <div class="stat-grid">
               <div class="stat-card"><span>Servers</span><strong id="stat-servers">—</strong></div>
               <div class="stat-card"><span>Combined members</span><strong id="stat-members">—</strong></div>
               <div class="stat-card"><span>Public commands</span><strong id="stat-commands">—</strong></div>
             </div>
+
             <div class="status-line" id="updated-at">Loading system information…</div>
           </div>
         </section>
 
+        <!-- LEVELING -->
         <section class="dashboard-view" data-dashboard-panel="leveling" hidden>
           <div class="panel">
             <div class="eyebrow">OWNER ONLY · GLOBAL PROGRESSION</div>
@@ -180,20 +234,24 @@
           </div>
         </section>
 
+        <!-- TEAM MANAGEMENT -->
         <section class="dashboard-view" data-dashboard-panel="team" hidden>
           <section class="panel" id="team-panel" hidden>
             <div class="eyebrow">OWNER ONLY</div>
             <h2>Developer access</h2>
             <p class="muted">Only the configured owner can appoint or remove ONYX developers. Changes use the same database as the bot's developer command.</p>
+
             <form class="team-form" id="add-form">
               <input id="new-user-id" name="user_id" inputmode="numeric" autocomplete="off" placeholder="Discord user ID" aria-label="Discord user ID" required>
               <button class="button primary" type="submit">Add developer</button>
             </form>
+
             <div class="message" id="team-message" role="status"></div>
             <div class="team-list" id="team-list"></div>
           </section>
         </section>
 
+        <!-- ASSET LIBRARY -->
         <section class="dashboard-view" data-dashboard-panel="assets" hidden>
           <section class="panel" id="asset-library-panel" hidden>
             <div class="eyebrow">OWNER ONLY · GLOBAL COSMETICS</div>
@@ -353,6 +411,7 @@
           </section>
         </section>
 
+        <!-- SYSTEM SETTINGS -->
         <section class="dashboard-view" data-dashboard-panel="settings" hidden>
           <div class="panel">
             <div class="eyebrow">OWNER ONLY</div>
@@ -361,6 +420,144 @@
             <div class="coming-soon">No system settings have been changed.</div>
           </div>
         </section>
+
+        <!-- ECONOMY & ARCADE -->
+        <section class="dashboard-view" data-dashboard-panel="arcade" hidden>
+          <div class="panel">
+            <div class="eyebrow">OWNER ONLY · ECONOMY CONTROL</div>
+            <h2>Economy & Arcade</h2>
+            <p class="muted">Control the Discord gambling games, manage wager limits, and review active streaks and administrative activity. Gameplay remains inside Discord.</p>
+
+            <div class="arcade-status">
+              <div>
+                <small class="muted">GLOBAL ARCADE STATUS</small>
+                <br>
+                <strong id="arcade-global-status">Loading status…</strong>
+              </div>
+              <div class="arcade-actions">
+                <button class="button" id="arcade-reload" type="button">Reload settings</button>
+                <button class="button" id="arcade-refresh" type="button">Refresh activity</button>
+              </div>
+            </div>
+
+            <div class="arcade-section">
+              <h3>Global Controls</h3>
+              <p>Turn the entire arcade on or off. When disabled, players cannot start new arcade games.</p>
+
+              <label class="arcade-toggle">
+                <span>Enable arcade globally</span>
+                <input id="arcade-enabled" type="checkbox">
+              </label>
+
+              <div class="arcade-warning">
+                Emergency Stop disables new arcade gameplay globally. It does not delete player balances or erase existing records.
+              </div>
+
+              <div class="arcade-actions">
+                <button class="button" id="arcade-emergency-stop" type="button">Emergency Stop</button>
+              </div>
+            </div>
+
+            <div class="arcade-section">
+              <h3>Individual Games</h3>
+              <p>Enable or disable each game independently. These controls apply to Discord game commands.</p>
+
+              <div class="arcade-game-grid">
+                <label class="arcade-toggle">
+                  <span>Blackjack</span>
+                  <input id="arcade-blackjack" type="checkbox">
+                </label>
+
+                <label class="arcade-toggle">
+                  <span>Slots</span>
+                  <input id="arcade-slots" type="checkbox">
+                </label>
+
+                <label class="arcade-toggle">
+                  <span>Dice</span>
+                  <input id="arcade-dice" type="checkbox">
+                </label>
+
+                <label class="arcade-toggle">
+                  <span>Betflip</span>
+                  <input id="arcade-betflip" type="checkbox">
+                </label>
+              </div>
+            </div>
+
+            <div class="arcade-section">
+              <h3>Wager & Payout Limits</h3>
+              <p>Set the minimum and maximum wager and the maximum payout allowed by the arcade controls.</p>
+
+              <div class="arcade-number-grid">
+                <label class="arcade-field">Minimum wager
+                  <input id="arcade-minimum" type="number" min="1" max="2000000000" step="1">
+                </label>
+
+                <label class="arcade-field">Maximum wager
+                  <input id="arcade-maximum" type="number" min="1" max="2000000000" step="1">
+                </label>
+
+                <label class="arcade-field">Maximum payout
+                  <input id="arcade-payout" type="number" min="1" max="2000000000" step="1">
+                </label>
+              </div>
+            </div>
+
+            <div class="arcade-section">
+              <h3>Streak Settings</h3>
+              <p>Control whether streak games are available and how many consecutive wins a player can reach.</p>
+
+              <label class="arcade-toggle">
+                <span>Enable streak games</span>
+                <input id="arcade-streaks" type="checkbox">
+              </label>
+
+              <div class="arcade-number-grid">
+                <label class="arcade-field">Maximum streak wins
+                  <input id="arcade-streak-wins" type="number" min="1" max="100" step="1">
+                </label>
+              </div>
+            </div>
+
+            <div class="arcade-actions">
+              <button class="button primary" id="arcade-save" type="button">Save Arcade Settings</button>
+            </div>
+
+            <div class="message" id="arcade-message" role="status"></div>
+            <div class="status-line" id="arcade-updated"></div>
+
+            <div class="arcade-section">
+              <div class="view-heading">
+                <div>
+                  <h3>Active Streaks</h3>
+                  <p>Currently recorded player streak sessions.</p>
+                </div>
+                <strong id="arcade-active-count">—</strong>
+              </div>
+
+              <div class="arcade-activity-list" id="arcade-streak-list">
+                <div class="arcade-empty">Loading streak activity…</div>
+              </div>
+            </div>
+
+            <div class="arcade-section">
+              <div class="view-heading">
+                <div>
+                  <h3>Arcade Admin Activity</h3>
+                  <p>Recent owner-side arcade configuration changes.</p>
+                </div>
+              </div>
+
+              <div class="arcade-activity-list" id="arcade-log-list">
+                <div class="arcade-empty">Loading activity…</div>
+              </div>
+
+              <div class="status-line" id="arcade-activity-updated"></div>
+            </div>
+          </div>
+        </section>
+
       </div>
     </div>
 
@@ -392,9 +589,9 @@
 <script src="../assets/owner-leveling.js?v=1"></script>
 <script src="../assets/owner-system-settings.js?v=1"></script>
 <script src="../assets/owner-cogs.js?v=1"></script>
+<script src="../assets/owner-arcade.js?v=1"></script>
+
 <script>
-  // Section switching is initialized here; role permissions are applied
-  // by the existing owner.js authentication flow in the next step.
   document.addEventListener("DOMContentLoaded", () => {
     const nav = document.getElementById("dashboard-nav");
     if (!nav) return;
@@ -407,15 +604,19 @@
       const panel = panels.find(item => item.dataset.dashboardPanel === name);
       if (!button || !panel) return;
 
-      buttons.forEach(item => item.setAttribute("aria-current", item === button ? "page" : "false"));
-      panels.forEach(item => item.hidden = item !== panel);
+      buttons.forEach(item => {
+        item.setAttribute("aria-current", item === button ? "page" : "false");
+      });
 
-      if (name === "team" && document.getElementById("team-panel").hidden) return;
-      if (name === "assets" && document.getElementById("asset-library-panel").hidden) return;
+      panels.forEach(item => {
+        item.hidden = item !== panel;
+      });
     }
 
     buttons.forEach(button => {
-      button.addEventListener("click", () => showView(button.dataset.dashboardView));
+      button.addEventListener("click", () => {
+        showView(button.dataset.dashboardView);
+      });
     });
   });
 </script>
