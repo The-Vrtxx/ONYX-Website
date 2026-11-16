@@ -6,31 +6,25 @@
   const $ = id => document.getElementById(id);
   const numberFormat = new Intl.NumberFormat("en-US");
 
-  const DEFAULTS = {
-    enabled: true,
-    games: {
-      blackjack: true,
-      slots: true,
-      dice: true,
-      betflip: true
-    },
-    streaks_enabled: true,
-    minimum_wager: 1,
-    maximum_wager: 1000000,
-    maximum_payout: 2000000,
-    maximum_streak_wins: 10
-  };
+  let currentConfig = null;
+  let creditCursor = null;
+  let creditLoading = false;
 
   const REWARD_LABELS = {
     reward_daily: "Daily Reward",
     reward_weekly: "Weekly Reward",
     reward_work: "Work",
-    reward_beg: "Beg"
+    reward_beg: "Beg",
+    blackjack_payout: "Blackjack Winnings",
+    slots_payout: "Slots Winnings",
+    dice_payout: "Dice Winnings",
+    betflip_payout: "Betflip Winnings",
+    arcade_streak: "Streak Cashout",
+    blackjack_push: "Blackjack Push Return",
+    slots_push: "Slots Push Return",
+    dice_push: "Dice Push Return",
+    betflip_push: "Betflip Push Return"
   };
-
-  let currentConfig = null;
-  let creditCursor = null;
-  let creditLoading = false;
 
   async function api(path, options = {}) {
     const response = await fetch(API + path, {
@@ -455,18 +449,30 @@
       <div class="view-heading">
         <div>
           <h2>Credit Earnings</h2>
-          <p>Track every credit earned through ONYX bot rewards.</p>
+          <p>Track bot rewards and arcade payouts across ONYX.</p>
         </div>
         <button type="button" id="credit-refresh">Refresh Ledger</button>
       </div>
 
       <div class="credit-stat-grid">
         <div class="credit-stat">
-          <span>Total Bot Credits Earned</span>
+          <span>Total Credits Earned</span>
           <strong id="credit-total">—</strong>
         </div>
         <div class="credit-stat">
-          <span>Reward Transactions</span>
+          <span>Bot Rewards</span>
+          <strong id="credit-rewards-total">—</strong>
+        </div>
+        <div class="credit-stat">
+          <span>Arcade Winnings</span>
+          <strong id="credit-arcade-total">—</strong>
+        </div>
+        <div class="credit-stat">
+          <span>Push Returns</span>
+          <strong id="credit-returns-total">—</strong>
+        </div>
+        <div class="credit-stat">
+          <span>Transactions</span>
           <strong id="credit-transactions-count">—</strong>
         </div>
         <div class="credit-stat">
@@ -475,15 +481,15 @@
         </div>
       </div>
 
-      <h3>Reward Breakdown</h3>
+      <h3>Earnings Breakdown</h3>
       <div class="credit-source-summary" id="credit-source-summary">
-        <span>Loading reward totals…</span>
+        <span>Loading earnings totals…</span>
       </div>
 
       <div class="view-heading">
         <div>
           <h3>Reward History</h3>
-          <p>Daily, weekly, work, and beg rewards recorded by the bot.</p>
+          <p>Bot rewards, game payouts, streak cashouts, and returned wagers.</p>
         </div>
       </div>
 
@@ -507,6 +513,15 @@
           <option value="reward_weekly">Weekly</option>
           <option value="reward_work">Work</option>
           <option value="reward_beg">Beg</option>
+          <option value="blackjack_payout">Blackjack Winnings</option>
+          <option value="slots_payout">Slots Winnings</option>
+          <option value="dice_payout">Dice Winnings</option>
+          <option value="betflip_payout">Betflip Winnings</option>
+          <option value="arcade_streak">Streak Cashout</option>
+          <option value="blackjack_push">Blackjack Push Return</option>
+          <option value="slots_push">Slots Push Return</option>
+          <option value="dice_push">Dice Push Return</option>
+          <option value="betflip_push">Betflip Push Return</option>
         </select>
         <button type="button" id="credit-apply-filters">Apply Filters</button>
         <button type="button" id="credit-clear-filters">Clear</button>
@@ -539,7 +554,7 @@
       </div>
 
       <p class="muted" style="margin-top:18px;font-size:12px">
-        Read-only ledger. Transfers, arcade payouts, and shop purchases are excluded.
+        Read-only ledger. Transfers, wagers, and shop purchases are excluded. Arcade winnings and push returns are shown separately.
       </p>
     `;
 
@@ -577,6 +592,15 @@
     $("credit-total").textContent =
       numberFormat.format(data.total_earned || 0);
 
+    $("credit-rewards-total").textContent =
+      numberFormat.format(data.rewards?.total_earned || 0);
+
+    $("credit-arcade-total").textContent =
+      numberFormat.format(data.arcade?.total_earned || 0);
+
+    $("credit-returns-total").textContent =
+      numberFormat.format(data.returns?.total_returned || 0);
+
     $("credit-transactions-count").textContent =
       numberFormat.format(data.transaction_count || 0);
 
@@ -590,7 +614,7 @@
 
     if (!sources.length) {
       const empty = document.createElement("span");
-      empty.textContent = "No reward earnings recorded yet.";
+      empty.textContent = "No earnings recorded yet.";
       container.append(empty);
       return;
     }
@@ -600,7 +624,7 @@
       const label = REWARD_LABELS[item.source] || item.source;
 
       chip.textContent =
-        `${label}: ${numberFormat.format(item.total_earned || 0)} credits`;
+        `${label}: ${numberFormat.format(item.total_earned || 0)} credits · ${numberFormat.format(item.transaction_count || 0)} transactions`;
 
       container.append(chip);
     });
@@ -693,7 +717,7 @@
       transactions.forEach(appendCreditRow);
 
       if (!loadMore && !transactions.length) {
-        message.textContent = "No matching reward transactions were found.";
+        message.textContent = "No matching earnings transactions were found.";
       } else {
         message.textContent = "";
       }
