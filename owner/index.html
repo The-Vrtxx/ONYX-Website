@@ -59,6 +59,10 @@
     .asset-upload-box small{display:block;color:var(--muted);line-height:1.6;margin-top:8px}
     .asset-upload-box strong{display:block;margin-bottom:8px;color:#e9ffff}
     .asset-file-name{margin-top:8px;color:var(--teal);font-size:12px;overflow-wrap:anywhere}
+    .currency-help{grid-column:1/-1;padding:14px;border:1px solid var(--line);background:#071012;color:var(--muted);font-size:12px;line-height:1.7}
+    .currency-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;grid-column:1/-1}
+    .currency-fields label{min-width:0}
+    .currency-fields input{width:100%}
 
     /* Layered dashboard navigation */
     .dashboard-layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:20px;margin-top:28px;align-items:start}
@@ -82,8 +86,8 @@
       .dashboard-nav button{padding:11px 9px;font-size:12px}
       .stat-grid{grid-template-columns:1fr}
       .panel{padding:20px}
-      .asset-grid,.asset-form{grid-template-columns:1fr}
-      .asset-form .wide,.asset-form-buttons,.asset-upload-box{grid-column:auto}
+      .asset-grid,.asset-form,.currency-fields{grid-template-columns:1fr}
+      .asset-form .wide,.asset-form-buttons,.asset-upload-box,.currency-fields{grid-column:auto}
       .asset-toolbar select{width:100%}
     }
   </style>
@@ -262,9 +266,30 @@
                   <textarea id="asset-description" maxlength="500" placeholder="Describe this asset"></textarea>
                 </label>
 
-                <label>Price (tokens)
-                  <input id="asset-price" type="number" min="0" max="2000000000" step="1" value="0" required>
+                <label class="wide">Currency mode
+                  <select id="asset-currency-mode" required>
+                    <option value="tokens">Prestige Tokens</option>
+                    <option value="credits">ONYX Credits</option>
+                    <option value="both">Both currencies</option>
+                    <option value="free">Free</option>
+                  </select>
                 </label>
+
+                <div class="currency-help">
+                  Choose which currency a member must spend to purchase this item.
+                  "Both currencies" means the member must pay both listed prices.
+                  Existing assets remain Token-priced unless you change them.
+                </div>
+
+                <div class="currency-fields">
+                  <label>Price (Prestige Tokens)
+                    <input id="asset-price" type="number" min="0" max="2000000000" step="1" value="0" required>
+                  </label>
+
+                  <label>Price (ONYX Credits)
+                    <input id="asset-price-credits" type="number" min="0" max="2000000000" step="1" value="0" required>
+                  </label>
+                </div>
 
                 <label>Rarity
                   <select id="asset-rarity">
@@ -363,7 +388,7 @@
 
 <script src="../assets/site.js?v=2"></script>
 <script src="../assets/preview.js?v=2"></script>
-<script src="../assets/owner.js?v=3"></script>
+<script src="../assets/owner.js?v=4"></script>
 <script src="../assets/owner-leveling.js?v=1"></script>
 <script src="../assets/owner-system-settings.js?v=1"></script>
 <script src="../assets/owner-cogs.js?v=1"></script>
