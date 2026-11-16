@@ -56,6 +56,39 @@ function setUploadMessage(message, isError = false) {
   el.className = isError ? "message error" : "message";
 }
 
+// CURRENCY HELPERS
+
+function getCurrencyModeLabel(mode) {
+  const labels = {
+    credits: "ONYX Credits",
+    tokens: "Prestige Tokens",
+    both: "Credits + Tokens",
+    free: "Free"
+  };
+
+  return labels[mode] || "Prestige Tokens";
+}
+
+function getAssetPriceLabel(asset) {
+  const mode = asset.currency_mode || "tokens";
+  const tokens = numberFormat.format(Number(asset.price_tokens || 0));
+  const credits = numberFormat.format(Number(asset.price_credits || 0));
+
+  if (mode === "credits") {
+    return credits + " ONYX Credits";
+  }
+
+  if (mode === "both") {
+    return tokens + " Prestige Tokens + " + credits + " ONYX Credits";
+  }
+
+  if (mode === "free") {
+    return "Free";
+  }
+
+  return tokens + " Prestige Tokens";
+}
+
 // IMAGE HELPERS
 
 function clearSelectedImage() {
@@ -384,8 +417,7 @@ function renderAssets(assets) {
       asset.category + " · " +
       asset.item_id + " · " +
       asset.rarity + " · " +
-      numberFormat.format(asset.price_tokens) +
-      " tokens";
+      getAssetPriceLabel(asset);
 
     const version = document.createElement("div");
     version.className = "asset-meta";
@@ -398,7 +430,9 @@ function renderAssets(assets) {
     status.textContent =
       (asset.is_active ? "Active" : "Inactive") +
       " · " +
-      (asset.is_shop_item ? "In shop" : "Not in shop");
+      (asset.is_shop_item ? "In shop" : "Not in shop") +
+      " · " +
+      getCurrencyModeLabel(asset.currency_mode || "tokens");
 
     info.append(title, meta, version, status);
     top.append(info);
@@ -504,6 +538,8 @@ function resetAssetForm() {
 
   $("asset-category").value = "frame";
   $("asset-price").value = "0";
+  $("asset-price-credits").value = "0";
+  $("asset-currency-mode").value = "tokens";
   $("asset-sort-order").value = "0";
   $("asset-metadata").value = "{}";
 
@@ -543,6 +579,8 @@ function openAssetEditor(asset) {
     $("asset-display-name").value = asset.display_name || "";
     $("asset-description").value = asset.description || "";
     $("asset-price").value = asset.price_tokens || 0;
+    $("asset-price-credits").value = asset.price_credits || 0;
+    $("asset-currency-mode").value = asset.currency_mode || "tokens";
     $("asset-rarity").value = asset.rarity || "Common";
     $("asset-image-url").value =
       asset.image_url && !asset.image_url.startsWith("/api/assets/media/")
@@ -643,6 +681,8 @@ async function importExistingPrestigeEmblems() {
               display_name: emblem.display_name,
               description: "Official ONYX " + emblem.display_name + " emblem.",
               price_tokens: 0,
+              price_credits: 0,
+              currency_mode: "tokens",
               rarity: "Common",
               image_url: null,
               sort_order: emblem.sort_order,
@@ -793,12 +833,41 @@ async function saveAsset(event) {
     return;
   }
 
+  const tokenPrice = Number($("asset-price").value);
+  const creditPrice = Number($("asset-price-credits").value);
+  const currencyMode = $("asset-currency-mode").value;
+
+  if (
+    !Number.isSafeInteger(tokenPrice) ||
+    tokenPrice < 0 ||
+    tokenPrice > 2000000000
+  ) {
+    setAssetMessage("Prestige Token price must be a whole number from 0 to 2 billion.", true);
+    return;
+  }
+
+  if (
+    !Number.isSafeInteger(creditPrice) ||
+    creditPrice < 0 ||
+    creditPrice > 2000000000
+  ) {
+    setAssetMessage("ONYX Credit price must be a whole number from 0 to 2 billion.", true);
+    return;
+  }
+
+  if (!["credits", "tokens", "both", "free"].includes(currencyMode)) {
+    setAssetMessage("Choose a valid currency mode.", true);
+    return;
+  }
+
   const payload = {
     category: $("asset-category").value,
     item_id: $("asset-item-id").value.trim(),
     display_name: $("asset-display-name").value.trim(),
     description: $("asset-description").value.trim(),
-    price_tokens: Number($("asset-price").value),
+    price_tokens: tokenPrice,
+    price_credits: creditPrice,
+    currency_mode: currencyMode,
     rarity: $("asset-rarity").value,
 
     // Preserve the existing stored image when no replacement is entered.
