@@ -1023,13 +1023,14 @@ async function startPortal() {
 
     // Owner-only sections are hidden completely from appointed developers.
     const ownerOnlyViews = new Set([
-  "leveling",
-  "team",
-  "assets",
-  "settings",
-  "cogs",
-  "arcade"
-]);
+      "leveling",
+      "team",
+      "assets",
+      "settings",
+      "cogs",
+      "arcade",
+      "watchdog"
+    ]);
 
     document.querySelectorAll("[data-dashboard-view]").forEach(button => {
       const view = button.dataset.dashboardView;
