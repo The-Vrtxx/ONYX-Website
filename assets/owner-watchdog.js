@@ -20,7 +20,7 @@
     const response = await fetch(API + path, {
       method: "GET",
       credentials: "include",
-      headers: {Accept: "application/json"}
+      headers: { Accept: "application/json" }
     });
 
     let data = {};
@@ -139,6 +139,38 @@
         font-size:12px;
         line-height:1.7;
         margin-top:6px;
+        overflow-wrap:anywhere;
+      }
+
+      .watchdog-identity {
+        margin-top:9px;
+        display:grid;
+        gap:5px;
+        font-size:12px;
+        line-height:1.6;
+        overflow-wrap:anywhere;
+      }
+
+      .watchdog-identity-row {
+        display:flex;
+        flex-wrap:wrap;
+        gap:5px;
+        align-items:baseline;
+      }
+
+      .watchdog-identity-label {
+        color:var(--muted);
+        min-width:48px;
+      }
+
+      .watchdog-identity-name {
+        color:#e4f5f3;
+        font-weight:600;
+      }
+
+      .watchdog-identity-id {
+        color:var(--muted);
+        font-size:11px;
         overflow-wrap:anywhere;
       }
 
@@ -309,7 +341,7 @@
           <input
             id="watchdog-search"
             type="search"
-            placeholder="Search action, user ID, or server ID"
+            placeholder="Search action, username, or server"
             aria-label="Search Watchdog events"
           >
 
@@ -440,6 +472,32 @@
       : "No categorized events recorded in the last 24 hours.";
   }
 
+  function addIdentityRow(container, label, name, id) {
+    if (!name && !id) return;
+
+    const row = document.createElement("div");
+    row.className = "watchdog-identity-row";
+
+    const heading = document.createElement("span");
+    heading.className = "watchdog-identity-label";
+    heading.textContent = label + ":";
+
+    const display = document.createElement("span");
+    display.className = "watchdog-identity-name";
+    display.textContent = escapeText(name || id || "Unknown");
+
+    row.append(heading, display);
+
+    if (id && name && String(id) !== String(name)) {
+      const identifier = document.createElement("span");
+      identifier.className = "watchdog-identity-id";
+      identifier.textContent = "(" + escapeText(id) + ")";
+      row.append(identifier);
+    }
+
+    container.append(row);
+  }
+
   function createEvent(event) {
     const article = document.createElement("article");
     article.className = "watchdog-event";
@@ -462,13 +520,37 @@
 
     meta.textContent = [
       date,
-      "Category: " + escapeText(event.category),
-      "User: " + escapeText(event.user_id || "N/A"),
-      "Server: " + escapeText(event.guild_id || "N/A"),
+      "Category: " + escapeText(event.category || "Unknown"),
       "Event ID: " + escapeText(event.id)
     ].join(" · ");
 
     info.append(title, meta);
+
+    const identities = document.createElement("div");
+    identities.className = "watchdog-identity";
+
+    addIdentityRow(
+      identities,
+      "User",
+      event.display_name || event.username,
+      event.user_id
+    );
+
+    addIdentityRow(
+      identities,
+      "Server",
+      event.guild_name,
+      event.guild_id
+    );
+
+    addIdentityRow(
+      identities,
+      "Target",
+      event.target_display_name || event.target_username,
+      event.target_id
+    );
+
+    info.append(identities);
 
     const badge = document.createElement("span");
     const outcome = String(event.outcome || "unknown").toLowerCase();
