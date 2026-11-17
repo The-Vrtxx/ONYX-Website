@@ -590,19 +590,21 @@
 <script src="../assets/owner-system-settings.js?v=1"></script>
 <script src="../assets/owner-cogs.js?v=1"></script>
 <script src="../assets/owner-arcade.js?v=1"></script>
+<script src="../assets/owner-watchdog.js?v=1"></script>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const nav = document.getElementById("dashboard-nav");
     if (!nav) return;
 
-    const buttons = Array.from(nav.querySelectorAll("[data-dashboard-view]"));
-    const panels = Array.from(document.querySelectorAll("[data-dashboard-panel]"));
-
     function showView(name) {
+      const buttons = Array.from(nav.querySelectorAll("[data-dashboard-view]"));
+      const panels = Array.from(document.querySelectorAll("[data-dashboard-panel]"));
+
       const button = buttons.find(item => item.dataset.dashboardView === name);
       const panel = panels.find(item => item.dataset.dashboardPanel === name);
-      if (!button || !panel) return;
+
+      if (!button || !panel || button.hidden) return;
 
       buttons.forEach(item => {
         item.setAttribute("aria-current", item === button ? "page" : "false");
@@ -613,11 +615,14 @@
       });
     }
 
-    buttons.forEach(button => {
-      button.addEventListener("click", () => {
-        showView(button.dataset.dashboardView);
-      });
+    nav.addEventListener("click", event => {
+      const button = event.target.closest("[data-dashboard-view]");
+      if (!button || button.hidden) return;
+
+      showView(button.dataset.dashboardView);
     });
+
+    window.ONYXShowDashboardView = showView;
   });
 </script>
 </body>
