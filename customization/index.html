@@ -1,0 +1,102 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rank Customization Studio | ONYX</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <link rel="stylesheet" href="../assets/customization.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">
+    <img class="brand-mark" src="/assets/onyx-mark.png" alt="">
+    ONYX
+  </a>
+  <button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/features">Features</a>
+    <a href="/docs">Documentation</a>
+    <a href="/commands/">Commands</a>
+    <a href="/shop/">Prestige Shop</a>
+    <a class="active" href="/customization/">Rank Studio</a>
+    <a href="/support">Support</a>
+  </nav>
+</header>
+
+<main class="studio-wrap">
+  <section class="studio-heading">
+    <div>
+      <div class="eyebrow">ONYX GLOBAL PROGRESSION</div>
+      <h1>Rank Customization <em>Studio.</em></h1>
+      <p>Build your rank card using cosmetics you've already unlocked.
+         Preview changes freely, then apply the full setup when you're ready.</p>
+    </div>
+    <div class="studio-account" id="studio-account" hidden>
+      <img id="studio-avatar" alt="">
+      <span id="studio-username"></span>
+      <button class="button" id="studio-logout" type="button">Sign out</button>
+    </div>
+  </section>
+
+  <section class="studio-login" id="studio-login">
+    <h2>Sign in to customize your rank card</h2>
+    <p>Your inventory and rank card are connected to your Discord account.</p>
+    <a class="button primary" href="https://api.onyxdiscord.com/auth/discord">
+      Continue with Discord ↗
+    </a>
+  </section>
+
+  <section id="studio-content" hidden>
+    <div class="studio-preview-panel">
+      <div class="studio-panel-heading">
+        <div>
+          <div class="eyebrow">LIVE PREVIEW</div>
+          <h2>Your ONYX identity</h2>
+        </div>
+        <span class="studio-preview-state" id="preview-state">Saved setup</span>
+      </div>
+      <div class="studio-image-frame">
+        <img id="rank-preview" alt="Preview of your ONYX rank card">
+      </div>
+      <div class="studio-actions">
+        <button class="button" id="reset-preview" type="button">Reset Preview</button>
+        <button class="button primary" id="apply-changes" type="button">Apply Changes</button>
+      </div>
+      <p class="studio-message" id="studio-message" role="status" aria-live="polite"></p>
+    </div>
+
+    <section class="studio-inventory">
+      <div class="eyebrow">YOUR COLLECTION</div>
+      <h2>Choose your cosmetics</h2>
+      <p class="studio-muted">Only items you've unlocked appear here. Selecting an item changes
+        the preview; it does not equip it until you choose Apply Changes.</p>
+      <div class="studio-tabs" id="studio-tabs">
+        <button class="active" data-category="frame">Frames</button>
+        <button data-category="theme">Themes</button>
+        <button data-category="emblem">Emblems</button>
+        <button data-category="effect">Effects</button>
+        <button data-category="background">Backgrounds</button>
+        <button data-category="badge">Badges</button>
+        <button data-category="title">Titles</button>
+      </div>
+      <div class="studio-items" id="studio-items">
+        <div class="studio-empty">Loading your collection...</div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="/"><img class="brand-mark" src="/assets/onyx-mark.png" alt=""> ONYX</a>
+    <span>© <span data-year></span> ONYX Development · Vrtx</span>
+    <div><a href="/shop/">Prestige Shop</a><a href="/customization/">Rank Studio</a><a href="/support">Support</a></div>
+  </div>
+</footer>
+<script src="../assets/site.js?v=2"></script>
+<script src="../assets/customization.js?v=1"></script>
+</body>
+</html>
