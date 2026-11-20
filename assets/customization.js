@@ -338,15 +338,46 @@
         isSelected(state.category, item)
       );
 
-      const icon = document.createElement("span");
-      icon.className = "item-icon";
+      // Artwork canvas uses the shared ONYX preview renderer.
+      const artwork = document.createElement("div");
+      artwork.className = "studio-item-artwork";
 
-      icon.textContent =
-        item.source === "default"
-          ? "↺"
-          : state.category === "title"
-            ? "✦"
-            : "◇";
+      const canvas = document.createElement("canvas");
+      canvas.width = 420;
+      canvas.height = 300;
+      canvas.setAttribute("aria-hidden", "true");
+      artwork.appendChild(canvas);
+
+      if (item.source === "default") {
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#091316";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#28dcd2";
+        ctx.font = "bold 54px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("↺", 210, 150);
+      } else if (
+        window.ONYXPreview &&
+        typeof window.ONYXPreview.renderAsset === "function"
+      ) {
+        window.ONYXPreview.renderAsset(canvas, {
+          category: state.category,
+          item_id: String(itemId(item) || ""),
+          display_name: itemName(item),
+          image_url: item.image_url || null,
+          metadata: item.metadata || {}
+        });
+      } else {
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#091316";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#28dcd2";
+        ctx.font = "bold 30px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(itemName(item), 210, 150, 360);
+      }
 
       const name = document.createElement("strong");
       name.textContent = itemName(item);
@@ -354,7 +385,7 @@
       const description = document.createElement("small");
       description.textContent = itemDescription(item);
 
-      card.append(icon, name, description);
+      card.append(artwork, name, description);
 
       card.addEventListener("click", async () => {
         setSelectedValue(state.category, item);
