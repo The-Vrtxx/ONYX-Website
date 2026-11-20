@@ -11,7 +11,9 @@
     saved: {},
     category: "frame",
     loading: false,
-    applying: false
+    applying: false,
+    previewRequest: 0,
+    previewUrl: null
   };
 
   const categories = [
@@ -34,9 +36,50 @@
     title: "Titles"
   };
 
+  const defaults = {
+    frame: {
+      id: "default",
+      name: "Default Frame",
+      frame_category: "frame",
+      source: "default"
+    },
+    theme: {
+      id: "onyx",
+      name: "Default Theme",
+      source: "default"
+    },
+    emblem: {
+      id: "default",
+      name: "Default Emblem",
+      source: "default"
+    },
+    effect: {
+      id: "none",
+      name: "No Effect",
+      source: "default"
+    },
+    background: {
+      id: "default",
+      name: "Default Background",
+      source: "default"
+    },
+    badge: {
+      id: "default",
+      name: "Default Badge",
+      source: "default"
+    },
+    title: {
+      id: "__none__",
+      name: "No Title",
+      source: "default",
+      resetValue: null
+    }
+  };
+
   function message(text, error = false) {
     const el = $("#studio-message");
     if (!el) return;
+
     el.textContent = text || "";
     el.style.color = error ? "#ff8585" : "";
   }
@@ -51,21 +94,27 @@
       credentials: "include",
       ...options,
       headers: {
-        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        ...(options.body ? {
+          "Content-Type": "application/json"
+        } : {}),
         ...(options.headers || {})
       }
     });
 
     if (response.status === 401 || response.status === 403) {
-      throw new Error("Please sign in with Discord to use the Rank Studio.");
+      throw new Error(
+        "Please sign in with Discord to use the Rank Studio."
+      );
     }
 
     if (!response.ok) {
       let detail = "Something went wrong. Please try again.";
+
       try {
         const data = await response.json();
         detail = data.error || data.message || detail;
       } catch (_) {}
+
       throw new Error(detail);
     }
 
@@ -74,41 +123,147 @@
 
   function normalizeEquipped(data = {}) {
     return {
-      frame_id: data.frame_id || null,
-      theme_id: data.theme_id || null,
-      emblem_id: data.emblem_id || null,
-      effect_id: data.effect_id || null,
-      background_id: data.background_id || null,
-      badge_id: data.badge_id || null,
-      title_id: data.title_id || null,
-      frame_category: data.frame_category || "frame"
+      frame_id: data.frame_id || "default",
+      frame_category: data.frame_category || "frame",
+      theme_id: data.theme_id || "onyx",
+      emblem_id: data.emblem_id || "default",
+      effect_id: data.effect_id || "none",
+      background_id: data.background_id || "default",
+      badge_id: data.badge_id || "default",
+      title_id: data.title_id || null
     };
   }
 
   function selectedId(category) {
-    const key = `${category}_id`;
-    return state.equipped[key] || null;
-  }
-
-  function setSelectedValue(category, id, frameCategory = null) {
-    const key = `${category}_id`;
-    state.equipped[key] = id || null;
-
-    if (category === "frame") {
-      state.equipped.frame_category = frameCategory || "frame";
-    }
+    return state.equipped[`${category}_id`] ?? null;
   }
 
   function itemId(item) {
-    return item.id || item.item_id || item.title || item.name;
+    return item.id ?? item.item_id ?? item.title ?? null;
   }
 
   function itemName(item) {
-    return item.name || item.title || item.display_name || item.id || item.item_id || "Untitled";
+    return (
+      item.name ||
+      item.title ||
+      item.display_name ||
+      item.id ||
+      item.item_id ||
+      "Untitled"
+    );
   }
 
   function itemDescription(item) {
-    return item.description || item.source || labels[state.category] || "Unlocked item";
+    if (item.source === "default") {
+      return "Restore the default appearance";
+    }
+
+    if (item.source === "achievement") {
+      return "Achievement unlocked";
+    }
+
+    if (item.source === "prestige_master") {
+      return `Prestige Master title · Level ${item.required_level || ""}`;
+    }
+
+    return item.description || item.source || "Unlocked item";
+  }
+
+  function isSelected(category, item) {
+    const id = itemId(item);
+
+    if (category === "title" && item.resetValue === null) {
+      return selectedId(category) === null;
+    }
+
+    if (String(selectedId(category)) !== String(id)) {
+      return false;
+    }
+
+    if (category === "frame") {
+      return (
+        (state.equipped.frame_category || "frame") ===
+        (item.frame_category || "frame")
+      );
+    }
+
+    return true;
+  }
+
+  function setSelectedValue(category, item) {
+    const value = item.resetValue !== undefined
+      ? item.resetValue
+      : itemId(item);
+
+    state.equipped[`${category}_id`] = value;
+
+    if (category === "frame") {
+      state.equipped.frame_category =
+        item.frame_category || "frame";
+    }
+  }
+
+  function groupInventory(items) {
+    const grouped = {};
+
+    categories.forEach((category) => {
+      grouped[category] = [];
+    });
+
+    if (!Array.isArray(items)) {
+      return grouped;
+    }
+
+    items.forEach((item) => {
+      if (!item || typeof item !== "object") return;
+
+      let category = String(item.category || "").toLowerCase();
+
+      // The API returns border items as frame items with
+      // frame_category="border". Keep them in the Frames tab.
+      if (category === "border") {
+        category = "frame";
+      }
+
+      if (!grouped[category]) return;
+
+      grouped[category].push(item);
+    });
+
+    // Add a default/reset choice to every cosmetic slot.
+    categories.forEach((category) => {
+      grouped[category].unshift({
+        ...defaults[category]
+      });
+    });
+
+    return grouped;
+  }
+
+  function discordAvatarUrl(user) {
+    if (user.avatar && user.id) {
+      const extension = user.avatar.startsWith("a_")
+        ? "gif"
+        : "png";
+
+      return (
+        `https://cdn.discordapp.com/avatars/` +
+        `${user.id}/${user.avatar}.${extension}?size=128`
+      );
+    }
+
+    if (user.id) {
+      const defaultAvatar = Number(
+        (BigInt(user.id) >> 22n) % 6n
+      );
+
+      return (
+        `https://cdn.discordapp.com/embed/avatars/` +
+        `${defaultAvatar}.png`
+      );
+    }
+
+    return "";
   }
 
   function renderAccount(user) {
@@ -125,11 +280,11 @@
 
     if (username) {
       username.textContent =
-        user.username || user.global_name || user.name || "Discord User";
+        user.username || user.global_name || "Discord User";
     }
 
     if (avatar) {
-      avatar.src = user.avatar_url || user.avatar || "";
+      avatar.src = discordAvatarUrl(user);
       avatar.alt = "Discord avatar";
     }
   }
@@ -145,7 +300,9 @@
   }
 
   function renderTabs() {
-    document.querySelectorAll("#studio-tabs button").forEach((button) => {
+    document.querySelectorAll(
+      "#studio-tabs button"
+    ).forEach((button) => {
       button.classList.toggle(
         "active",
         button.dataset.category === state.category
@@ -158,29 +315,38 @@
     if (!container) return;
 
     const items = state.inventory[state.category] || [];
-    const current = selectedId(state.category);
 
     container.replaceChildren();
 
     if (!items.length) {
       const empty = document.createElement("div");
       empty.className = "studio-empty";
-      empty.textContent = `No unlocked ${labels[state.category].toLowerCase()} yet.`;
+      empty.textContent =
+        `No unlocked ${labels[state.category].toLowerCase()} yet.`;
+
       container.appendChild(empty);
       return;
     }
 
     items.forEach((item) => {
-      const id = itemId(item);
       const card = document.createElement("button");
 
       card.type = "button";
       card.className = "studio-item";
-      card.classList.toggle("selected", String(id) === String(current));
+      card.classList.toggle(
+        "selected",
+        isSelected(state.category, item)
+      );
 
       const icon = document.createElement("span");
       icon.className = "item-icon";
-      icon.textContent = state.category === "title" ? "✦" : "◇";
+
+      icon.textContent =
+        item.source === "default"
+          ? "↺"
+          : state.category === "title"
+            ? "✦"
+            : "◇";
 
       const name = document.createElement("strong");
       name.textContent = itemName(item);
@@ -191,9 +357,8 @@
       card.append(icon, name, description);
 
       card.addEventListener("click", async () => {
-        const frameCategory = item.frame_category || item.owned_category || null;
+        setSelectedValue(state.category, item);
 
-        setSelectedValue(state.category, id, frameCategory);
         renderItems();
         await loadPreview();
       });
@@ -206,25 +371,40 @@
     const image = $("#rank-preview");
     if (!image) return;
 
+    const requestNumber = ++state.previewRequest;
+
     try {
       setPreviewState("Generating preview...");
 
-      const response = await api("/api/profile-card/preview.png", {
-        method: "POST",
-        body: JSON.stringify(state.equipped)
-      });
+      const response = await api(
+        "/api/profile-card/preview.png",
+        {
+          method: "POST",
+          body: JSON.stringify(state.equipped)
+        }
+      );
 
       const blob = await response.blob();
+
+      // Ignore older previews if the user selected something else
+      // while the previous preview was still rendering.
+      if (requestNumber !== state.previewRequest) return;
+
       const url = URL.createObjectURL(blob);
-      const previous = image.dataset.objectUrl;
+      const previous = state.previewUrl;
 
+      state.previewUrl = url;
       image.src = url;
-      image.dataset.objectUrl = url;
 
-      if (previous) URL.revokeObjectURL(previous);
+      if (previous) {
+        URL.revokeObjectURL(previous);
+      }
 
       setPreviewState("Unsaved preview");
+      message("");
     } catch (error) {
+      if (requestNumber !== state.previewRequest) return;
+
       message(error.message, true);
       setPreviewState("Preview unavailable");
     }
@@ -232,41 +412,39 @@
 
   async function loadStudio() {
     if (state.loading) return;
+
     state.loading = true;
     message("Loading your ONYX collection...");
 
     try {
-      const response = await api("/api/profile-card/customization");
-      const data = await response.json();
+      // Fetch account information and customization inventory
+      // separately because the customization endpoint does not
+      // return the Discord user object.
+      const [userResponse, inventoryResponse] = await Promise.all([
+        api("/api/me"),
+        api("/api/profile-card/customization")
+      ]);
 
-      renderAccount(data.user || {});
+      const user = await userResponse.json();
+      const data = await inventoryResponse.json();
 
-      state.inventory = data.inventory || {};
+      renderAccount(user);
+
+      state.inventory = groupInventory(data.items || []);
       state.equipped = normalizeEquipped(data.equipped || {});
       state.saved = normalizeEquipped(data.equipped || {});
-
-      categories.forEach((category) => {
-        if (!Array.isArray(state.inventory[category])) {
-          state.inventory[category] = [];
-        }
-      });
 
       state.category = "frame";
 
       renderTabs();
       renderItems();
 
-      const initialImage = $("#rank-preview");
-      if (initialImage && data.preview_url) {
-        initialImage.src = data.preview_url;
-      } else {
-        await loadPreview();
-      }
+      await loadPreview();
 
       setPreviewState("Saved setup");
       message("");
     } catch (error) {
-      if (error.message.includes("sign in")) {
+      if (error.message.toLowerCase().includes("sign in")) {
         renderLogin();
       } else {
         message(error.message, true);
@@ -294,8 +472,10 @@
       });
 
       state.saved = normalizeEquipped(state.equipped);
+
       message("Your rank card customization has been saved!");
       setPreviewState("Saved setup");
+
       renderItems();
     } catch (error) {
       message(error.message, true);
@@ -311,31 +491,85 @@
 
   async function resetPreview() {
     state.equipped = normalizeEquipped(state.saved);
+
     renderItems();
+
     message("Preview reset to your saved setup.");
+
     await loadPreview();
+
     setPreviewState("Saved setup");
+  }
+
+  async function logout() {
+    const button = $("#studio-logout");
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Signing out...";
+    }
+
+    try {
+      await api("/auth/logout", {
+        method: "POST"
+      });
+
+      if (state.previewUrl) {
+        URL.revokeObjectURL(state.previewUrl);
+        state.previewUrl = null;
+      }
+
+      window.location.reload();
+    } catch (error) {
+      message(error.message, true);
+
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Sign out";
+      }
+    }
   }
 
   function bindEvents() {
     $("#studio-tabs")?.addEventListener("click", (event) => {
-      const button = event.target.closest("button[data-category]");
+      const button = event.target.closest(
+        "button[data-category]"
+      );
+
       if (!button) return;
 
       const category = button.dataset.category;
+
       if (!categories.includes(category)) return;
 
       state.category = category;
+
       renderTabs();
       renderItems();
     });
 
-    $("#apply-changes")?.addEventListener("click", applyChanges);
-    $("#reset-preview")?.addEventListener("click", resetPreview);
+    $("#apply-changes")?.addEventListener(
+      "click",
+      applyChanges
+    );
 
-    $("#studio-logout")?.addEventListener("click", () => {
-      window.location.href = `${API}/auth/logout`;
-    });
+    $("#reset-preview")?.addEventListener(
+      "click",
+      resetPreview
+    );
+
+    $("#studio-logout")?.addEventListener(
+      "click",
+      logout
+    );
+
+    // Return users to the Rank Studio after Discord login.
+    const loginLink = $("#studio-login a");
+
+    if (loginLink) {
+      loginLink.href =
+        `${API}/auth/discord?next=${encodeURIComponent("/customization/")}`;
+    }
   }
 
   document.addEventListener("DOMContentLoaded", () => {
