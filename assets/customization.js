@@ -219,8 +219,7 @@
 
       let category = String(item.category || "").toLowerCase();
 
-      // The API returns border items as frame items with
-      // frame_category="border". Keep them in the Frames tab.
+      // Keep border items in the Frames tab.
       if (category === "border") {
         category = "frame";
       }
@@ -338,54 +337,69 @@
         isSelected(state.category, item)
       );
 
-      // Artwork canvas uses the shared ONYX preview renderer.
-      const artwork = document.createElement("div");
-      artwork.className = "studio-item-artwork";
-
-      const canvas = document.createElement("canvas");
-      canvas.width = 420;
-      canvas.height = 300;
-      canvas.setAttribute("aria-hidden", "true");
-      artwork.appendChild(canvas);
-
-      if (item.source === "default") {
-        const ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#091316";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#28dcd2";
-        ctx.font = "bold 54px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("↺", 210, 150);
-      } else if (
-        window.ONYXPreview &&
-        typeof window.ONYXPreview.renderAsset === "function"
-      ) {
-        window.ONYXPreview.renderAsset(canvas, {
-          category: state.category,
-          item_id: String(itemId(item) || ""),
-          display_name: itemName(item),
-          image_url: item.image_url || null,
-          metadata: item.metadata || {}
-        });
-      } else {
-        const ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#091316";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#28dcd2";
-        ctx.font = "bold 30px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(itemName(item), 210, 150, 360);
-      }
-
       const name = document.createElement("strong");
       name.textContent = itemName(item);
 
-      const description = document.createElement("small");
-      description.textContent = itemDescription(item);
+      // TITLES: Display the name only.
+      // No artwork, image, canvas, or description.
+      if (state.category === "title") {
+        card.classList.add("studio-title-item");
+        card.appendChild(name);
 
-      card.append(artwork, name, description);
+      } else {
+        // Other cosmetics retain their artwork previews.
+        const artwork = document.createElement("div");
+        artwork.className = "studio-item-artwork";
+
+        const canvas = document.createElement("canvas");
+        canvas.width = 420;
+        canvas.height = 300;
+        canvas.setAttribute("aria-hidden", "true");
+
+        artwork.appendChild(canvas);
+
+        if (item.source === "default") {
+          const ctx = canvas.getContext("2d");
+
+          ctx.fillStyle = "#091316";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.fillStyle = "#28dcd2";
+          ctx.font = "bold 54px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("↺", 210, 150);
+
+        } else if (
+          window.ONYXPreview &&
+          typeof window.ONYXPreview.renderAsset === "function"
+        ) {
+          window.ONYXPreview.renderAsset(canvas, {
+            category: state.category,
+            item_id: String(itemId(item) || ""),
+            display_name: itemName(item),
+            image_url: item.image_url || null,
+            metadata: item.metadata || {}
+          });
+
+        } else {
+          const ctx = canvas.getContext("2d");
+
+          ctx.fillStyle = "#091316";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.fillStyle = "#28dcd2";
+          ctx.font = "bold 30px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(itemName(item), 210, 150, 360);
+        }
+
+        const description = document.createElement("small");
+        description.textContent = itemDescription(item);
+
+        card.append(artwork, name, description);
+      }
 
       card.addEventListener("click", async () => {
         setSelectedValue(state.category, item);
@@ -417,8 +431,7 @@
 
       const blob = await response.blob();
 
-      // Ignore older previews if the user selected something else
-      // while the previous preview was still rendering.
+      // Ignore older previews if the user selected something else.
       if (requestNumber !== state.previewRequest) return;
 
       const url = URL.createObjectURL(blob);
@@ -433,6 +446,7 @@
 
       setPreviewState("Unsaved preview");
       message("");
+
     } catch (error) {
       if (requestNumber !== state.previewRequest) return;
 
@@ -448,9 +462,6 @@
     message("Loading your ONYX collection...");
 
     try {
-      // Fetch account information and customization inventory
-      // separately because the customization endpoint does not
-      // return the Discord user object.
       const [userResponse, inventoryResponse] = await Promise.all([
         api("/api/me"),
         api("/api/profile-card/customization")
@@ -474,12 +485,14 @@
 
       setPreviewState("Saved setup");
       message("");
+
     } catch (error) {
       if (error.message.toLowerCase().includes("sign in")) {
         renderLogin();
       } else {
         message(error.message, true);
       }
+
     } finally {
       state.loading = false;
     }
@@ -508,8 +521,10 @@
       setPreviewState("Saved setup");
 
       renderItems();
+
     } catch (error) {
       message(error.message, true);
+
     } finally {
       state.applying = false;
 
@@ -551,6 +566,7 @@
       }
 
       window.location.reload();
+
     } catch (error) {
       message(error.message, true);
 
@@ -607,4 +623,5 @@
     bindEvents();
     loadStudio();
   });
+
 })();
