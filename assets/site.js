@@ -267,11 +267,13 @@
       makeLink("/commands/", "COMMANDS")
     ]);
 
+    // MEMBER HUB
     const memberHub = makeGroup("MEMBER HUB", [
       makeLink("/dashboard/", "DASHBOARD"),
       makeLink("/xp", "GLOBAL XP"),
       makeLink("/achievements/", "ACHIEVEMENTS"),
-      makeLink("/shop/", "PRESTIGE SHOP")
+      makeLink("/shop/", "PRESTIGE SHOP"),
+      makeLink("/customization/", "RANK CUSTOMIZATION")
     ]);
 
     const help = makeGroup("HELP & INFORMATION", [
