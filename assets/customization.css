@@ -263,6 +263,24 @@
   border-radius: 12px;
 }
 
+/* Cosmetic artwork previews */
+.studio-item-artwork {
+  width: 100%;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: rgba(0, 0, 0, .22);
+  aspect-ratio: 420 / 300;
+}
+
+.studio-item-artwork canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 420 / 300;
+  object-fit: contain;
+}
+
 @media (max-width: 700px) {
   .studio-wrap {
     padding-top: 38px;
