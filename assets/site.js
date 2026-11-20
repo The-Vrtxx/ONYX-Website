@@ -131,10 +131,15 @@
 
       @media(max-width:650px) {
         .topbar nav.onyx-nav {
+          display: none;
           gap: 5px;
           max-height: calc(100vh - 80px);
           overflow-y: auto;
           align-items: stretch;
+        }
+
+        .topbar nav.onyx-nav.open {
+          display: flex;
         }
 
         .onyx-nav-group {
@@ -203,8 +208,10 @@
       link.setAttribute(key, value);
     });
 
-    if (path === currentPath ||
-        (path !== "/" && currentPath.startsWith(path))) {
+    if (
+      path === currentPath ||
+      (path !== "/" && currentPath.startsWith(path))
+    ) {
       link.classList.add("active");
       link.setAttribute("aria-current", "page");
     }
@@ -225,7 +232,10 @@
     let hasActive = false;
 
     links.forEach(link => {
-      if (link.classList.contains("active")) hasActive = true;
+      if (link.classList.contains("active")) {
+        hasActive = true;
+      }
+
       menu.appendChild(link);
     });
 
@@ -238,10 +248,14 @@
     return details;
   }
 
-  // Build the public navigation groups.
   function buildNavigation() {
     nav.classList.add("onyx-nav");
+    nav.classList.remove("open");
     nav.innerHTML = "";
+
+    if (menuButton) {
+      menuButton.setAttribute("aria-expanded", "false");
+    }
 
     const home = makeLink("/", "HOME", {
       class: "onyx-nav-direct"
@@ -266,13 +280,15 @@
       makeLink("/privacy", "PRIVACY")
     ]);
 
-    const ownerLink = makeLink("/owner/", "OWNER CONTROL CENTER", {
-      class: "onyx-nav-direct"
-    });
+    const ownerLink = makeLink(
+      "/owner/",
+      "OWNER CONTROL CENTER",
+      { class: "onyx-nav-direct" }
+    );
+
     ownerLink.hidden = true;
     ownerLink.setAttribute("data-onyx-team", "");
 
-    // Account controls are populated after Discord authentication.
     const account = makeGroup("ACCOUNT", []);
 
     const authLink = document.createElement("a");
@@ -322,11 +338,15 @@
 
   const controls = buildNavigation();
 
-  // Mobile menu open / close.
+  // Toggle the mobile navigation.
   if (menuButton) {
     menuButton.addEventListener("click", () => {
       const isOpen = nav.classList.toggle("open");
-      menuButton.setAttribute("aria-expanded", String(isOpen));
+
+      menuButton.setAttribute(
+        "aria-expanded",
+        String(isOpen)
+      );
     });
   }
 
@@ -336,7 +356,9 @@
       if (!group.open) return;
 
       nav.querySelectorAll(".onyx-nav-group").forEach(other => {
-        if (other !== group) other.open = false;
+        if (other !== group) {
+          other.open = false;
+        }
       });
     });
   });
